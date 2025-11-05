@@ -1,0 +1,397 @@
+{% extends 'base.html' %}
+
+{% block title %}Register - GiveNGet{% endblock %}
+
+{% block extra_css %}
+<style>
+    .role-card {
+        transition: all 0.3s ease;
+        border: 2px solid #e5e7eb;
+        cursor: pointer;
+    }
+    
+    .role-card:hover {
+        transform: translateY(-2px);
+        border-color: #3b82f6;
+    }
+    
+    .role-card.selected {
+        border-color: #3b82f6;
+        background-color: #eff6ff;
+    }
+    
+    .password-strength {
+        height: 3px;
+        transition: all 0.3s ease;
+        border-radius: 2px;
+    }
+    
+    .password-weak { background-color: #ef4444; width: 25%; }
+    .password-fair { background-color: #f59e0b; width: 50%; }
+    .password-good { background-color: #3b82f6; width: 75%; }
+    .password-strong { background-color: #10b981; width: 100%; }
+    
+    .form-input {
+        transition: all 0.3s ease;
+    }
+    
+    .form-input:focus {
+        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gradient-to-br from-blue-50 to-purple-100 py-6 px-4 sm:px-6 lg:px-8 flex items-center justify-center">
+    <div class="max-w-lg w-full">
+        <!-- Header -->
+        <div class="text-center mb-6">
+            <a href="{% url 'home' %}" class="inline-block">
+                <h1 class="text-3xl font-bold text-gray-800">GiveNGet</h1>
+            </a>
+            <p class="mt-1 text-gray-600 text-sm">Join our sharing community</p>
+        </div>
+
+        <!-- Registration Card -->
+        <div class="bg-white rounded-xl shadow-lg overflow-hidden">
+            <!-- Card Header -->
+            <div class="bg-gradient-to-r from-blue-600 to-purple-700 px-6 py-6">
+                <h2 class="text-xl font-bold text-white text-center">Create Account</h2>
+            </div>
+
+            <!-- Card Body -->
+            <div class="px-6 py-6">
+                <form method="post" enctype="multipart/form-data" class="space-y-4" id="registration-form">
+                    {% csrf_token %}
+                    
+                    <!-- Name & Email -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label for="{{ form.name.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+                                Full Name *
+                            </label>
+                            {{ form.name }}
+                            {% if form.name.errors %}
+                            <div class="mt-1 text-xs text-red-600">
+                                {% for error in form.name.errors %}
+                                {{ error }}
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        <div>
+                            <label for="{{ form.email.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+                                Email *
+                            </label>
+                            {{ form.email }}
+                            {% if form.email.errors %}
+                            <div class="mt-1 text-xs text-red-600">
+                                {% for error in form.email.errors %}
+                                {{ error }}
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Phone & Role -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label for="{{ form.phone.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+                                Phone
+                            </label>
+                            {{ form.phone }}
+                            {% if form.phone.errors %}
+                            <div class="mt-1 text-xs text-red-600">
+                                {% for error in form.phone.errors %}
+                                {{ error }}
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                I want to: *
+                            </label>
+                            <div class="flex space-x-2" id="role-selection">
+                                <div class="role-card flex-1 p-2 rounded text-center text-xs" data-role="receiver">
+                                    <div class="w-6 h-6 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-1">
+                                        <i class="fas fa-gift text-green-600 text-xs"></i>
+                                    </div>
+                                    <span class="font-medium">Receiver</span>
+                                </div>
+
+                                <div class="role-card flex-1 p-2 rounded text-center text-xs" data-role="exchanger">
+                                    <div class="w-6 h-6 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-1">
+                                        <i class="fas fa-exchange-alt text-purple-600 text-xs"></i>
+                                    </div>
+                                    <span class="font-medium">Exchanger</span>
+                                </div>
+
+                                <div class="role-card flex-1 p-2 rounded text-center text-xs" data-role="donor">
+                                    <div class="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-1">
+                                        <i class="fas fa-hands-helping text-blue-600 text-xs"></i>
+                                    </div>
+                                    <span class="font-medium">Donor</span>
+                                </div>
+                            </div>
+                            
+                            <!-- Hidden role input -->
+                            {{ form.role }}
+                            
+                            {% if form.role.errors %}
+                            <div class="mt-1 text-xs text-red-600">
+                                {% for error in form.role.errors %}
+                                {{ error }}
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Address -->
+                    <div>
+                        <label for="{{ form.address.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+                            Address
+                        </label>
+                        {{ form.address }}
+                        {% if form.address.errors %}
+                        <div class="mt-1 text-xs text-red-600">
+                            {% for error in form.address.errors %}
+                            {{ error }}
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Profile Photo -->
+                    <div>
+                        <label for="{{ form.profile_photo.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+                            Profile Photo
+                        </label>
+                        <div class="flex items-center space-x-3">
+                            {{ form.profile_photo }}
+                            <span class="text-xs text-gray-500">Optional</span>
+                        </div>
+                        {% if form.profile_photo.errors %}
+                        <div class="mt-1 text-xs text-red-600">
+                            {% for error in form.profile_photo.errors %}
+                            {{ error }}
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Passwords -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label for="{{ form.password1.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+                                Password *
+                            </label>
+                            <div class="relative">
+                                {{ form.password1 }}
+                                <button type="button" class="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600" onclick="togglePassword('id_password1')">
+                                    <i class="fas fa-eye text-xs" id="toggle-password1"></i>
+                                </button>
+                            </div>
+                            
+                            <!-- Password Strength -->
+                            <div class="mt-1">
+                                <div class="password-strength bg-gray-200 rounded-full" id="password-strength"></div>
+                                <div class="text-xs text-gray-500 mt-1" id="password-feedback"></div>
+                            </div>
+                            
+                            {% if form.password1.errors %}
+                            <div class="mt-1 text-xs text-red-600">
+                                {% for error in form.password1.errors %}
+                                {{ error }}
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        <div>
+                            <label for="{{ form.password2.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+                                Confirm Password *
+                            </label>
+                            <div class="relative">
+                                {{ form.password2 }}
+                                <button type="button" class="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600" onclick="togglePassword('id_password2')">
+                                    <i class="fas fa-eye text-xs" id="toggle-password2"></i>
+                                </button>
+                            </div>
+                            
+                            <!-- Password Match -->
+                            <div class="mt-1">
+                                <div class="text-xs" id="password-match"></div>
+                            </div>
+                            
+                            {% if form.password2.errors %}
+                            <div class="mt-1 text-xs text-red-600">
+                                {% for error in form.password2.errors %}
+                                {{ error }}
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Submit Button -->
+                    <div class="pt-2">
+                        <button type="submit" id="submit-btn" class="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-lg font-medium transition duration-300 disabled:opacity-50 disabled:cursor-not-allowed">
+                            <i class="fas fa-user-plus mr-2"></i>
+                            Create Account
+                        </button>
+                    </div>
+                </form>
+
+                <!-- Login Link -->
+                <div class="mt-4 text-center">
+                    <p class="text-sm text-gray-600">
+                        Already have an account?
+                        <a href="{% url 'login' %}" class="text-blue-600 hover:text-blue-500 font-medium">
+                            Sign In
+                        </a>
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Security Notice -->
+        <div class="mt-4 bg-blue-50 border border-blue-200 rounded-lg p-3 text-center">
+            <p class="text-xs text-blue-700">
+                <i class="fas fa-shield-alt mr-1"></i>
+                Your information is secure and protected
+            </p>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Role Selection
+    document.addEventListener('DOMContentLoaded', function() {
+        const roleCards = document.querySelectorAll('.role-card');
+        const roleInput = document.getElementById('{{ form.role.id_for_label }}');
+        
+        roleCards.forEach(card => {
+            card.addEventListener('click', function() {
+                roleCards.forEach(c => c.classList.remove('selected'));
+                this.classList.add('selected');
+                roleInput.value = this.dataset.role;
+            });
+        });
+        
+        // Set initial selection
+        if (roleInput.value) {
+            const initialCard = document.querySelector(`[data-role="${roleInput.value}"]`);
+            if (initialCard) initialCard.classList.add('selected');
+        } else {
+            // Default selection
+            roleCards[1].classList.add('selected'); // Exchanger
+            roleInput.value = 'exchanger';
+        }
+    });
+
+    // Password visibility toggle
+    function togglePassword(fieldId) {
+        const passwordInput = document.getElementById(fieldId);
+        const toggleIcon = document.getElementById(`toggle-${fieldId}`);
+        
+        if (passwordInput.type === 'password') {
+            passwordInput.type = 'text';
+            toggleIcon.classList.remove('fa-eye');
+            toggleIcon.classList.add('fa-eye-slash');
+        } else {
+            passwordInput.type = 'password';
+            toggleIcon.classList.remove('fa-eye-slash');
+            toggleIcon.classList.add('fa-eye');
+        }
+    }
+
+    // Password strength checker
+    document.getElementById('id_password1').addEventListener('input', function(e) {
+        const password = e.target.value;
+        const strengthMeter = document.getElementById('password-strength');
+        const feedback = document.getElementById('password-feedback');
+        
+        let strength = 0;
+        let feedbackText = '';
+        
+        if (password.length >= 8) strength++;
+        if (password.match(/[a-z]/) && password.match(/[A-Z]/)) strength++;
+        if (password.match(/\d/)) strength++;
+        if (password.match(/[^a-zA-Z\d]/)) strength++;
+        
+        switch(strength) {
+            case 0: case 1:
+                feedbackText = 'Weak password';
+                strengthMeter.className = 'password-strength password-weak';
+                break;
+            case 2:
+                feedbackText = 'Fair password';
+                strengthMeter.className = 'password-strength password-fair';
+                break;
+            case 3:
+                feedbackText = 'Good password';
+                strengthMeter.className = 'password-strength password-good';
+                break;
+            case 4:
+                feedbackText = 'Strong password';
+                strengthMeter.className = 'password-strength password-strong';
+                break;
+        }
+        
+        feedback.textContent = feedbackText;
+        checkPasswordMatch();
+    });
+
+    // Password match checker
+    function checkPasswordMatch() {
+        const password1 = document.getElementById('id_password1').value;
+        const password2 = document.getElementById('id_password2').value;
+        const matchIndicator = document.getElementById('password-match');
+        
+        if (password2 === '') {
+            matchIndicator.textContent = '';
+            matchIndicator.className = 'text-xs';
+        } else if (password1 === password2) {
+            matchIndicator.innerHTML = '<i class="fas fa-check text-green-500 mr-1"></i>Passwords match';
+            matchIndicator.className = 'text-xs text-green-600';
+        } else {
+            matchIndicator.innerHTML = '<i class="fas fa-times text-red-500 mr-1"></i>Passwords do not match';
+            matchIndicator.className = 'text-xs text-red-600';
+        }
+    }
+
+    document.getElementById('id_password2').addEventListener('input', checkPasswordMatch);
+
+    // Phone number formatting
+    document.getElementById('id_phone').addEventListener('input', function(e) {
+        let value = e.target.value.replace(/\D/g, '');
+        if (value.startsWith('88')) {
+            value = value.substring(2);
+        }
+        if (value.startsWith('0')) {
+            value = value.substring(1);
+        }
+        if (value.length > 0) {
+            value = '0' + value;
+        }
+        if (value.length > 11) {
+            value = value.substring(0, 11);
+        }
+        e.target.value = value;
+    });
+
+    // Form submission handler
+    document.getElementById('registration-form').addEventListener('submit', function(e) {
+        const submitBtn = document.getElementById('submit-btn');
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Creating...';
+        submitBtn.disabled = true;
+    });
+</script>
+{% endblock %}

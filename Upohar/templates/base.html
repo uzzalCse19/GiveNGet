@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}GiveNGet - Donate & Exchange with Ease{% endblock %}</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
+    {% block extra_css %}{% endblock %}
+</head>
+<body class="bg-gray-50">
+    <!-- Navigation -->
+    <nav class="bg-white shadow-lg sticky top-0 z-50 transition-all duration-300">
+        <div class="max-w-7xl mx-auto px-4">
+            <div class="flex justify-between items-center py-4">
+                <!-- Logo -->
+                <div class="flex items-center">
+                    <a href="{% url 'home' %}" class="text-2xl font-bold gradient-text">
+                        <span class="mr-2">🤝</span>
+                        GiveNGet
+                    </a>
+                </div>
+
+                <!-- Desktop Menu -->
+                <div class="hidden md:flex items-center space-x-8">
+                    <a href="{% url 'home' %}" class="text-gray-700 hover:text-blue-600 font-medium transition duration-300">Home</a>
+                    <a href="{% url 'post_list' %}" class="text-gray-700 hover:text-blue-600 font-medium transition duration-300">Browse Items</a>
+                    
+                    {% if user.is_authenticated %}
+                        <a href="{% url 'dashboard' %}" class="text-gray-700 hover:text-blue-600 font-medium transition duration-300">Dashboard</a>
+                        {% if user.is_donor_user or user.role in 'donor exchanger' %}
+                        <a href="{% url 'create_post' %}" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition duration-300">Create Post</a>
+                        {% endif %}
+
+                        <!-- User Dropdown -->
+                        <div class="relative group">
+                            <button class="flex items-center space-x-2 text-gray-700 hover:text-blue-600 font-medium transition duration-300">
+                                {% if user.profile_photo %}
+                                    <img src="{{ user.profile_photo.url }}" class="w-8 h-8 rounded-full object-cover">
+                                {% else %}
+                                    <div class="w-8 h-8 bg-gradient-to-r from-blue-400 to-purple-500 rounded-full flex items-center justify-center text-white text-sm font-semibold">
+                                        {{ user.name|first|upper }}
+                                    </div>
+                                {% endif %}
+                                <span>{{ user.name }}</span>
+                                <i class="fas fa-chevron-down text-xs"></i>
+                            </button>
+
+                            <div class="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg py-2 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300">
+                                <a href="{% url 'profile' %}" class="block px-4 py-2 text-gray-700 hover:bg-gray-100 transition duration-300">
+                                    <i class="fas fa-user mr-2"></i>My Profile
+                                </a>
+                                <a href="{% url 'manage_requests' %}" class="block px-4 py-2 text-gray-700 hover:bg-gray-100 transition duration-300">
+                                    <i class="fas fa-exchange-alt mr-2"></i>My Requests
+                                </a>
+<a href="{% url 'logout' %}" class="block px-4 py-2 text-red-600 hover:bg-red-50 transition duration-300">
+    <i class="fas fa-sign-out-alt mr-2"></i>Logout
+</a>
+                        </div>
+                    {% else %}
+                        <a href="{% url 'login' %}" class="text-gray-700 hover:text-blue-600 font-medium transition duration-300">Login</a>
+                        <a href="{% url 'register' %}" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-medium transition duration-300">Sign Up</a>
+                    {% endif %}
+                </div>
+
+                <!-- Mobile menu button -->
+                <div class="md:hidden">
+                    <button id="mobile-menu-button" class="text-gray-700 hover:text-blue-600">
+                        <i class="fas fa-bars text-xl"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Mobile Menu -->
+            <div id="mobile-menu" class="hidden md:hidden pb-4 border-t">
+                <div class="flex flex-col space-y-4 mt-4">
+                    <a href="{% url 'home' %}" class="text-gray-700 hover:text-blue-600 font-medium">Home</a>
+                    <a href="{% url 'post_list' %}" class="text-gray-700 hover:text-blue-600 font-medium">Browse Items</a>
+
+                    {% if user.is_authenticated %}
+                        <a href="{% url 'dashboard' %}" class="text-gray-700 hover:text-blue-600 font-medium">Dashboard</a>
+                        {% if user.is_donor_user or user.role in 'donor exchanger' %}
+                        <a href="{% url 'create_post' %}" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium text-center">Create Post</a>
+                        {% endif %}
+                        <a href="{% url 'profile' %}" class="text-gray-700 hover:text-blue-600 font-medium">My Profile</a>
+                        <a href="{% url 'manage_requests' %}" class="text-gray-700 hover:text-blue-600 font-medium">My Requests</a>
+<a href="{% url 'logout' %}" class="text-red-600 hover:text-red-700 font-medium">
+    <i class="fas fa-sign-out-alt mr-2"></i>Logout
+</a>
+                    {% else %}
+                        <a href="{% url 'login' %}" class="text-gray-700 hover:text-blue-600 font-medium">Login</a>
+                        <a href="{% url 'register' %}" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium text-center">Sign Up</a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Messages -->
+    {% if messages %}
+    <div class="max-w-7xl mx-auto px-4 mt-4">
+        {% for message in messages %}
+        <div class="alert alert-{{ message.tags }} bg-{% if message.tags == 'success' %}green-500{% elif message.tags == 'error' %}red-500{% else %}blue-500{% endif %} text-white p-4 rounded-lg mb-4 transition duration-300">
+            {{ message }}
+            <button type="button" class="float-right text-white hover:text-gray-200" onclick="this.parentElement.remove()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Main Content -->
+    <main>
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-gray-800 text-white py-12">
+        <div class="max-w-7xl mx-auto px-4">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
+                <div>
+                    <h3 class="text-2xl font-bold mb-4">GiveNGet</h3>
+                    <p class="text-gray-400">A community-driven platform for sharing gifts, exchanging items, and spreading kindness.</p>
+                </div>
+
+                <div>
+                    <h4 class="text-lg font-semibold mb-4">Quick Links</h4>
+                    <ul class="space-y-2">
+                        <li><a href="{% url 'home' %}" class="text-gray-400 hover:text-white transition duration-300">Home</a></li>
+                        <li><a href="{% url 'post_list' %}" class="text-gray-400 hover:text-white transition duration-300">Browse Items</a></li>
+                        <li><a href="{% url 'post_list' %}?type=donation" class="text-gray-400 hover:text-white transition duration-300">Donations</a></li>
+                        <li><a href="{% url 'post_list' %}?type=exchange" class="text-gray-400 hover:text-white transition duration-300">Exchanges</a></li>
+                    </ul>
+                </div>
+
+                <div>
+                    <h4 class="text-lg font-semibold mb-4">Account</h4>
+                    <ul class="space-y-2">
+                        {% if user.is_authenticated %}
+                        <li><a href="{% url 'dashboard' %}" class="text-gray-400 hover:text-white transition duration-300">Dashboard</a></li>
+                        <li><a href="{% url 'profile' %}" class="text-gray-400 hover:text-white transition duration-300">My Profile</a></li>
+                        <li><a href="{% url 'manage_requests' %}" class="text-gray-400 hover:text-white transition duration-300">My Requests</a></li>
+                        {% else %}
+                        <li><a href="{% url 'login' %}" class="text-gray-400 hover:text-white transition duration-300">Login</a></li>
+                        <li><a href="{% url 'register' %}" class="text-gray-400 hover:text-white transition duration-300">Register</a></li>
+                        {% endif %}
+                    </ul>
+                </div>
+
+                <div>
+                    <h4 class="text-lg font-semibold mb-4">Connect</h4>
+                    <div class="flex space-x-4">
+                        <a href="#" class="text-gray-400 hover:text-white transition duration-300"><i class="fab fa-facebook text-xl"></i></a>
+                        <a href="#" class="text-gray-400 hover:text-white transition duration-300"><i class="fab fa-twitter text-xl"></i></a>
+                        <a href="#" class="text-gray-400 hover:text-white transition duration-300"><i class="fab fa-instagram text-xl"></i></a>
+                    </div>
+                    <p class="text-gray-400 mt-4"><i class="fas fa-envelope mr-2"></i>support@givenget.com</p>
+                </div>
+            </div>
+
+            <div class="border-t border-gray-700 mt-8 pt-8 text-center text-gray-400">
+                <p>&copy; 2025 GiveNGet. All rights reserved. | Academic Project</p>
+            </div>
+        </div>
+    </footer>
+
+    {% block extra_js %}{% endblock %}
+
+    <script>
+        // Mobile menu toggle
+        document.getElementById('mobile-menu-button').addEventListener('click', function() {
+            const menu = document.getElementById('mobile-menu');
+            menu.classList.toggle('hidden');
+        });
+
+        // Navbar scroll effect
+        window.addEventListener('scroll', function() {
+            const nav = document.querySelector('nav');
+            if (window.scrollY > 100) {
+                nav.classList.add('shadow-xl');
+            } else {
+                nav.classList.remove('shadow-xl');
+            }
+        });
+
+        // Auto-hide messages after 5 seconds
+        setTimeout(function() {
+            const messages = document.querySelectorAll('.alert');
+            messages.forEach(message => {
+                message.style.opacity = '0';
+                setTimeout(() => message.remove(), 300);
+            });
+        }, 5000);
+    </script>
+</body>
+</html>

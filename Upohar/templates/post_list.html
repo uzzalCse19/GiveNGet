@@ -1,0 +1,87 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-3">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Filters</h5>
+            </div>
+            <div class="card-body">
+                <form method="get">
+                    <div class="mb-3">
+                        <label class="form-label">Category</label>
+                        <select name="category" class="form-select">
+                            <option value="">All Categories</option>
+                            {% for category in categories %}
+                            <option value="{{ category.id }}" {% if request.GET.category == category.id|stringformat:"i" %}selected{% endif %}>
+                                {{ category.name }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Type</label>
+                        <select name="type" class="form-select">
+                            <option value="">All Types</option>
+                            <option value="donation" {% if request.GET.type == 'donation' %}selected{% endif %}>Donation</option>
+                            <option value="exchange" {% if request.GET.type == 'exchange' %}selected{% endif %}>Exchange</option>
+                        </select>
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100">Apply Filters</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-9">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2>Available Posts</h2>
+            <span class="text-muted">{{ posts.count }} posts found</span>
+        </div>
+
+        <div class="row">
+            {% for post in posts %}
+            <div class="col-md-6 col-lg-4 mb-4">
+                <div class="card post-card h-100">
+                    {% if post.image %}
+                    <img src="{{ post.image.url }}" class="card-img-top" alt="{{ post.title }}" style="height: 200px; object-fit: cover;">
+                    {% else %}
+                    <div class="card-img-top bg-light d-flex align-items-center justify-content-center" style="height: 200px;">
+                        <span class="text-muted">No Image</span>
+                    </div>
+                    {% endif %}
+                    <div class="card-body">
+                        <h5 class="card-title">{{ post.title }}</h5>
+                        <span class="badge bg-{% if post.type == 'donation' %}success{% else %}warning{% endif %}">
+                            {{ post.get_type_display }}
+                        </span>
+                        {% if post.category %}
+                        <span class="badge bg-info">{{ post.category.name }}</span>
+                        {% endif %}
+                        <p class="card-text mt-2">{{ post.description|truncatewords:15 }}</p>
+                        {% if post.type == 'exchange' %}
+                        <p class="card-text"><small><strong>Exchange for:</strong> {{ post.exchange_item_name }}</small></p>
+                        {% endif %}
+                        <small class="text-muted">Posted by {{ post.donor.name }} • {{ post.city }}</small>
+                    </div>
+                    <div class="card-footer">
+                        <a href="{% url 'post_detail' post.id %}" class="btn btn-sm btn-primary">View Details</a>
+                        {% if user.is_authenticated and user != post.donor %}
+                        <a href="{% url 'request_post' post.id %}" class="btn btn-sm btn-success">Request</a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% empty %}
+            <div class="col-12">
+                <div class="text-center py-5">
+                    <h4 class="text-muted">No posts found</h4>
+                    <p class="text-muted">Try adjusting your filters or check back later.</p>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock %}

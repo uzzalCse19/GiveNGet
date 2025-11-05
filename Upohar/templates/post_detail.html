@@ -1,0 +1,91 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-8">
+        <div class="card">
+            {% if post.image %}
+            <img src="{{ post.image.url }}" class="card-img-top" alt="{{ post.title }}">
+            {% endif %}
+            <div class="card-body">
+                <h2 class="card-title">{{ post.title }}</h2>
+                <div class="mb-3">
+                    <span class="badge bg-{% if post.type == 'donation' %}success{% else %}warning{% endif %} me-2">
+                        {{ post.get_type_display }}
+                    </span>
+                    <span class="badge bg-{% if post.status == 'available' %}success{% elif post.status == 'requested' %}warning{% else %}secondary{% endif %} me-2">
+                        {{ post.get_status_display }}
+                    </span>
+                    {% if post.category %}
+                    <span class="badge bg-info">{{ post.category.name }}</span>
+                    {% endif %}
+                </div>
+                
+                <p class="card-text">{{ post.description }}</p>
+                
+                {% if post.type == 'exchange' %}
+                <div class="alert alert-warning">
+                    <h5>Exchange Details</h5>
+                    <p><strong>Looking for:</strong> {{ post.exchange_item_name }}</p>
+                    <p><strong>Description:</strong> {{ post.exchange_item_description }}</p>
+                </div>
+                {% endif %}
+                
+                <div class="row mt-4">
+                    <div class="col-md-6">
+                        <h6>Location</h6>
+                        <p class="text-muted">{{ post.city|default:"Not specified" }}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <h6>Posted</h6>
+                        <p class="text-muted">{{ post.created_at|date }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Post Creator</h5>
+            </div>
+            <div class="card-body text-center">
+                {% if post.donor.profile_photo %}
+                <img src="{{ post.donor.profile_photo.url }}" class="rounded-circle mb-3" width="80" height="80" style="object-fit: cover;">
+                {% endif %}
+                <h5>{{ post.donor.name }}</h5>
+                <p class="text-muted">{{ post.donor.role|title }}</p>
+                <span class="badge bg-secondary">{{ post.donor.badge_level }}</span>
+            </div>
+        </div>
+        
+        {% if user.is_authenticated and user != post.donor and post.status == 'available' %}
+        <div class="card mt-3">
+            <div class="card-body text-center">
+                {% if user_has_requested %}
+                <div class="alert alert-info">
+                    <p>You have already requested this item.</p>
+                    <a href="{% url 'manage_requests' %}" class="btn btn-sm btn-outline-primary">View My Requests</a>
+                </div>
+                {% else %}
+                <a href="{% url 'request_post' post.id %}" class="btn btn-success btn-lg w-100">
+                    Request This Item
+                </a>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+        
+        {% if user == post.donor %}
+        <div class="card mt-3">
+            <div class="card-body">
+                <h6>Post Management</h6>
+                <a href="{% url 'manage_requests' %}" class="btn btn-primary w-100 mb-2">Manage Requests</a>
+                <a href="#" class="btn btn-outline-secondary w-100">Edit Post</a>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

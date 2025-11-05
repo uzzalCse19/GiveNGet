@@ -1,0 +1,250 @@
+{% extends 'base.html' %}
+
+{% block title %}Receiver Dashboard - GiveNGet{% endblock %}
+
+{% block extra_css %}
+<style>
+    .stat-card {
+        background: white;
+        border-radius: 1rem;
+        padding: 1.5rem;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        border-left: 4px solid;
+        transition: all 0.3s ease;
+    }
+    
+    .stat-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+    }
+    
+    .stat-number {
+        font-size: 2.5rem;
+        font-weight: bold;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+    
+    .activity-card {
+        transition: all 0.3s ease;
+        border: 1px solid #e5e7eb;
+    }
+    
+    .activity-card:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    }
+    
+    .badge-level {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 0.5rem 1rem;
+        border-radius: 2rem;
+        font-weight: 600;
+        display: inline-block;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gradient-to-br from-blue-50 to-purple-100 py-8 px-4 sm:px-6 lg:px-8">
+    <div class="max-w-7xl mx-auto">
+        <!-- Header -->
+        <div class="mb-8">
+            <div class="flex flex-col md:flex-row md:items-center md:justify-between">
+                <div>
+                    <h1 class="text-3xl font-bold text-gray-800">Receiver Dashboard</h1>
+                    <p class="text-gray-600 mt-2">Welcome back, {{ user.name }}! 
+                        <span class="badge-level">{{ user.badge_level }}</span>
+                    </p>
+                </div>
+                <div class="mt-4 md:mt-0">
+                    <a href="{% url 'post_list' %}" class="bg-gradient-to-r from-blue-600 to-purple-700 text-white px-6 py-3 rounded-lg font-semibold hover:from-blue-700 hover:to-purple-800 transition duration-300 transform hover:scale-105 inline-flex items-center">
+                        <i class="fas fa-search mr-2"></i>
+                        Browse Items
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Stats Grid -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            <!-- Received Items -->
+            <div class="stat-card border-l-green-500">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm font-medium text-gray-600">Received Items</p>
+                        <p class="stat-number">{{ total_received }}</p>
+                    </div>
+                    <div class="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center">
+                        <i class="fas fa-gift text-green-600 text-xl"></i>
+                    </div>
+                </div>
+                <p class="text-xs text-gray-500 mt-2">Items you've received</p>
+            </div>
+
+            <!-- Pending Requests -->
+            <div class="stat-card border-l-orange-500">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm font-medium text-gray-600">Pending Requests</p>
+                        <p class="stat-number">{{ pending_requests }}</p>
+                    </div>
+                    <div class="w-12 h-12 bg-orange-100 rounded-full flex items-center justify-center">
+                        <i class="fas fa-clock text-orange-600 text-xl"></i>
+                    </div>
+                </div>
+                <p class="text-xs text-gray-500 mt-2">Awaiting approval</p>
+            </div>
+
+            <!-- Approved Requests -->
+            <div class="stat-card border-l-blue-500">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm font-medium text-gray-600">Approved</p>
+                        <p class="stat-number">{{ approved_requests }}</p>
+                    </div>
+                    <div class="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
+                        <i class="fas fa-thumbs-up text-blue-600 text-xl"></i>
+                    </div>
+                </div>
+                <p class="text-xs text-gray-500 mt-2">Requests approved</p>
+            </div>
+
+            <!-- Rejected Requests -->
+            <div class="stat-card border-l-red-500">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm font-medium text-gray-600">Not Approved</p>
+                        <p class="stat-number">{{ rejected_requests }}</p>
+                    </div>
+                    <div class="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center">
+                        <i class="fas fa-times text-red-600 text-xl"></i>
+                    </div>
+                </div>
+                <p class="text-xs text-gray-500 mt-2">Requests not approved</p>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <!-- My Requests -->
+            <div class="bg-white rounded-2xl shadow-xl overflow-hidden">
+                <div class="bg-gradient-to-r from-blue-600 to-purple-700 px-6 py-4">
+                    <h2 class="text-lg font-bold text-white">My Recent Requests</h2>
+                </div>
+                <div class="p-6">
+                    {% for req in requests %}
+                    <div class="activity-card bg-white rounded-lg p-4 mb-4 last:mb-0">
+                        <div class="flex items-start justify-between">
+                            <div class="flex-1">
+                                <h3 class="font-semibold text-gray-800 mb-1">{{ req.gift.title }}</h3>
+                                <div class="flex items-center gap-2 mb-2">
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium 
+                                        {% if req.status == 'pending' %}bg-orange-100 text-orange-800
+                                        {% elif req.status == 'approved' %}bg-green-100 text-green-800
+                                        {% elif req.status == 'rejected' %}bg-red-100 text-red-800
+                                        {% else %}bg-gray-100 text-gray-800{% endif %}">
+                                        {{ req.get_status_display }}
+                                    </span>
+                                    <span class="text-xs text-gray-500">{{ req.created_at|timesince }} ago</span>
+                                </div>
+                                <p class="text-sm text-gray-600 mb-2">
+                                    <i class="fas fa-user mr-1"></i>From: {{ req.gift.donor.name }}
+                                </p>
+                                {% if req.message %}
+                                <p class="text-sm text-gray-500 line-clamp-2">
+                                    <i class="fas fa-comment mr-1"></i>{{ req.message }}
+                                </p>
+                                {% endif %}
+                            </div>
+                            <a href="{% url 'post_detail' req.gift.id %}" class="ml-4 bg-blue-600 hover:bg-blue-700 text-white p-2 rounded-lg transition duration-300">
+                                <i class="fas fa-eye text-sm"></i>
+                            </a>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <div class="text-center py-8">
+                        <i class="fas fa-hand-paper text-gray-400 text-4xl mb-3"></i>
+                        <p class="text-gray-500">No requests yet</p>
+                        <a href="{% url 'post_list' %}" class="text-blue-600 hover:text-blue-500 font-medium mt-2 inline-block">
+                            Browse items to make requests
+                        </a>
+                    </div>
+                    {% endfor %}
+                    
+                    {% if requests %}
+                    <div class="text-center mt-4">
+                        <a href="{% url 'manage_requests' %}" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition duration-300">
+                            View All Requests
+                        </a>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Received Items -->
+            <div class="bg-white rounded-2xl shadow-xl overflow-hidden">
+                <div class="bg-gradient-to-r from-green-600 to-green-700 px-6 py-4">
+                    <h2 class="text-lg font-bold text-white">Received Items</h2>
+                </div>
+                <div class="p-6">
+                    {% for gift in received_gifts %}
+                    <div class="activity-card bg-white rounded-lg p-4 mb-4 last:mb-0">
+                        <div class="flex items-start justify-between">
+                            <div class="flex-1">
+                                <h3 class="font-semibold text-gray-800 mb-1">{{ gift.title }}</h3>
+                                <div class="flex items-center gap-2 mb-2">
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                        Received
+                                    </span>
+                                    <span class="text-xs text-gray-500">{{ gift.updated_at|timesince }} ago</span>
+                                </div>
+                                <p class="text-sm text-gray-600 mb-2">
+                                    <i class="fas fa-user mr-1"></i>From: {{ gift.donor.name }}
+                                </p>
+                                <p class="text-sm text-gray-500 line-clamp-2">{{ gift.description|truncatewords:15 }}</p>
+                            </div>
+                            <a href="{% url 'post_detail' gift.id %}" class="ml-4 bg-green-600 hover:bg-green-700 text-white p-2 rounded-lg transition duration-300">
+                                <i class="fas fa-eye text-sm"></i>
+                            </a>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <div class="text-center py-8">
+                        <i class="fas fa-inbox text-gray-400 text-4xl mb-3"></i>
+                        <p class="text-gray-500">No received items yet</p>
+                        <p class="text-sm text-gray-400 mt-1">Items you receive will appear here</p>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="mt-8 grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div class="bg-white rounded-2xl shadow-xl p-6 text-center">
+                <div class="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <i class="fas fa-search text-blue-600 text-2xl"></i>
+                </div>
+                <h3 class="text-lg font-semibold text-gray-800 mb-2">Browse Items</h3>
+                <p class="text-gray-600 text-sm mb-4">Find items you need from the community</p>
+                <a href="{% url 'post_list' %}" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition duration-300 inline-block">
+                    Browse Now
+                </a>
+            </div>
+
+            <div class="bg-white rounded-2xl shadow-xl p-6 text-center">
+                <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <i class="fas fa-exchange-alt text-green-600 text-2xl"></i>
+                </div>
+                <h3 class="text-lg font-semibold text-gray-800 mb-2">My Requests</h3>
+                <p class="text-gray-600 text-sm mb-4">Track your item requests and status</p>
+                <a href="{% url 'manage_requests' %}" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg font-medium transition duration-300 inline-block">
+                    View Requests
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

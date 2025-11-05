@@ -1,0 +1,86 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h2>Manage Requests</h2>
+
+{% if received_requests %}
+<div class="card mt-4">
+    <div class="card-header">
+        <h5 class="mb-0">Requests for My Posts</h5>
+    </div>
+    <div class="card-body">
+        {% for req in received_requests %}
+        <div class="border-bottom pb-3 mb-3">
+            <div class="row">
+                <div class="col-md-8">
+                    <h6>{{ req.gift.title }}</h6>
+                    <p class="mb-1"><strong>From:</strong> {{ req.requester.name }} ({{ req.requester.email }})</p>
+                    {% if req.message %}
+                    <p class="mb-1"><strong>Message:</strong> {{ req.message }}</p>
+                    {% endif %}
+                    <small class="text-muted">Requested {{ req.created_at|timesince }} ago</small>
+                </div>
+                <div class="col-md-4 text-end">
+                    <span class="badge bg-{% if req.status == 'pending' %}warning{% elif req.status == 'approved' %}success{% elif req.status == 'rejected' %}danger{% else %}secondary{% endif %} mb-2">
+                        {{ req.get_status_display }}
+                    </span>
+                    
+                    {% if req.status == 'pending' %}
+                    <form method="post" class="d-inline">
+                        {% csrf_token %}
+                        <input type="hidden" name="request_id" value="{{ req.id }}">
+                        <button type="submit" name="action" value="approve" class="btn btn-success btn-sm">Approve</button>
+                        <button type="submit" name="action" value="reject" class="btn btn-danger btn-sm">Reject</button>
+                    </form>
+                    {% elif req.status == 'approved' %}
+                    <form method="post" class="d-inline">
+                        {% csrf_token %}
+                        <input type="hidden" name="request_id" value="{{ req.id }}">
+                        <button type="submit" name="action" value="complete" class="btn btn-primary btn-sm">Mark Complete</button>
+                    </form>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
+
+{% if sent_requests %}
+<div class="card mt-4">
+    <div class="card-header">
+        <h5 class="mb-0">My Sent Requests</h5>
+    </div>
+    <div class="card-body">
+        {% for req in sent_requests %}
+        <div class="border-bottom pb-3 mb-3">
+            <div class="row">
+                <div class="col-md-8">
+                    <h6>{{ req.gift.title }}</h6>
+                    <p class="mb-1"><strong>To:</strong> {{ req.gift.donor.name }}</p>
+                    {% if req.message %}
+                    <p class="mb-1"><strong>My Message:</strong> {{ req.message }}</p>
+                    {% endif %}
+                    <small class="text-muted">Sent {{ req.created_at|timesince }} ago</small>
+                </div>
+                <div class="col-md-4 text-end">
+                    <span class="badge bg-{% if req.status == 'pending' %}warning{% elif req.status == 'approved' %}success{% elif req.status == 'rejected' %}danger{% else %}secondary{% endif %}">
+                        {{ req.get_status_display }}
+                    </span>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
+
+{% if not received_requests and not sent_requests %}
+<div class="text-center py-5">
+    <h4 class="text-muted">No requests found</h4>
+    <p class="text-muted">You haven't made any requests yet, and no one has requested your posts.</p>
+    <a href="{% url 'post_list' %}" class="btn btn-primary">Browse Posts</a>
+</div>
+{% endif %}
+{% endblock %}

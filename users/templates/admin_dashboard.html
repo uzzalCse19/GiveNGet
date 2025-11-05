@@ -1,0 +1,471 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Admin Dashboard - GiveNGet{% endblock %}
+
+{% block extra_css %}
+<link href="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.css" rel="stylesheet">
+<style>
+    .admin-stat-card {
+        background: white;
+        border-radius: 1rem;
+        padding: 1.5rem;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        border-left: 4px solid;
+        transition: all 0.3s ease;
+    }
+    
+    .admin-stat-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+    }
+    
+    .stat-number {
+        font-size: 2.5rem;
+        font-weight: bold;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+    
+    .chart-container {
+        background: white;
+        border-radius: 1rem;
+        padding: 1.5rem;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        margin-bottom: 1.5rem;
+    }
+    
+    .activity-card {
+        transition: all 0.3s ease;
+        border: 1px solid #e5e7eb;
+    }
+    
+    .activity-card:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    }
+    
+    .quick-action-btn {
+        transition: all 0.3s ease;
+    }
+    
+    .quick-action-btn:hover {
+        transform: scale(1.05);
+    }
+    
+    .status-badge {
+        font-size: 0.75rem;
+        padding: 0.25rem 0.5rem;
+        border-radius: 0.375rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gradient-to-br from-blue-50 to-purple-100 py-8 px-4 sm:px-6 lg:px-8">
+    <div class="max-w-7xl mx-auto">
+        <!-- Header -->
+        <div class="mb-8">
+            <div class="flex flex-col md:flex-row md:items-center md:justify-between">
+                <div>
+                    <h1 class="text-3xl font-bold text-gray-800">Admin Dashboard</h1>
+                    <p class="text-gray-600 mt-2">Platform Overview & Management</p>
+                </div>
+                <div class="mt-4 md:mt-0 flex gap-3">
+                    <a href="/admin/" class="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg font-medium transition duration-300 inline-flex items-center">
+                        <i class="fas fa-cog mr-2"></i>
+                        Django Admin
+                    </a>
+                    <a href="{% url 'post_list' %}" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition duration-300 inline-flex items-center">
+                        <i class="fas fa-eye mr-2"></i>
+                        View Site
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Stats -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            <!-- Total Users -->
+            <div class="admin-stat-card border-l-blue-500">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm font-medium text-gray-600">Total Users</p>
+                        <p class="stat-number">{{ total_users }}</p>
+                    </div>
+                    <div class="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
+                        <i class="fas fa-users text-blue-600 text-xl"></i>
+                    </div>
+                </div>
+                <p class="text-xs text-gray-500 mt-2">
+                    {{ active_users }} active • {{ new_users_today }} new today
+                </p>
+            </div>
+
+            <!-- Total Posts -->
+            <div class="admin-stat-card border-l-green-500">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm font-medium text-gray-600">Total Posts</p>
+                        <p class="stat-number">{{ total_posts }}</p>
+                    </div>
+                    <div class="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center">
+                        <i class="fas fa-gift text-green-600 text-xl"></i>
+                    </div>
+                </div>
+                <p class="text-xs text-gray-500 mt-2">
+                    {{ available_posts }} available • {{ completed_posts }} completed
+                </p>
+            </div>
+
+            <!-- Total Requests -->
+            <div class="admin-stat-card border-l-orange-500">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm font-medium text-gray-600">Total Requests</p>
+                        <p class="stat-number">{{ total_requests }}</p>
+                    </div>
+                    <div class="w-12 h-12 bg-orange-100 rounded-full flex items-center justify-center">
+                        <i class="fas fa-exchange-alt text-orange-600 text-xl"></i>
+                    </div>
+                </div>
+                <p class="text-xs text-gray-500 mt-2">
+                    {{ pending_requests }} pending • {{ approved_requests }} approved
+                </p>
+            </div>
+
+            <!-- System Health -->
+            <div class="admin-stat-card border-l-purple-500">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm font-medium text-gray-600">System Health</p>
+                        <p class="stat-number">{{ category_stats.count }}</p>
+                    </div>
+                    <div class="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center">
+                        <i class="fas fa-heartbeat text-purple-600 text-xl"></i>
+                    </div>
+                </div>
+                <p class="text-xs text-gray-500 mt-2">
+                    {{ inactive_categories }} inactive categories
+                </p>
+            </div>
+        </div>
+
+        <!-- Charts Section -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+            <!-- User Role Distribution -->
+            <div class="chart-container">
+                <h3 class="text-lg font-semibold text-gray-800 mb-4">User Role Distribution</h3>
+                <div class="h-64">
+                    <canvas id="roleChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Post Type Distribution -->
+            <div class="chart-container">
+                <h3 class="text-lg font-semibold text-gray-800 mb-4">Post Type Distribution</h3>
+                <div class="h-64">
+                    <canvas id="postTypeChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Request Status Distribution -->
+            <div class="chart-container">
+                <h3 class="text-lg font-semibold text-gray-800 mb-4">Request Status Distribution</h3>
+                <div class="h-64">
+                    <canvas id="requestStatusChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Category Performance -->
+            <div class="chart-container">
+                <h3 class="text-lg font-semibold text-gray-800 mb-4">Top Categories</h3>
+                <div class="space-y-3">
+                    {% for category in category_stats|slice:":5" %}
+                    <div class="flex items-center justify-between">
+                        <span class="text-sm font-medium text-gray-700">{{ category.name }}</span>
+                        <div class="flex items-center gap-2">
+                            <span class="text-xs text-gray-500">{{ category.post_count }} posts</span>
+                            <div class="w-20 bg-gray-200 rounded-full h-2">
+                                <div class="bg-blue-600 h-2 rounded-full" 
+                                     style="width: {% widthratio category.post_count total_posts 100 %}%"></div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+            <a href="#user-management" class="quick-action-btn bg-white rounded-lg p-4 text-center shadow-sm hover:shadow-md transition duration-300">
+                <div class="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-2">
+                    <i class="fas fa-users text-blue-600"></i>
+                </div>
+                <span class="text-sm font-medium text-gray-700">User Management</span>
+            </a>
+            
+            <a href="#post-management" class="quick-action-btn bg-white rounded-lg p-4 text-center shadow-sm hover:shadow-md transition duration-300">
+                <div class="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-2">
+                    <i class="fas fa-gift text-green-600"></i>
+                </div>
+                <span class="text-sm font-medium text-gray-700">Post Management</span>
+            </a>
+            
+            <a href="#request-management" class="quick-action-btn bg-white rounded-lg p-4 text-center shadow-sm hover:shadow-md transition duration-300">
+                <div class="w-10 h-10 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-2">
+                    <i class="fas fa-exchange-alt text-orange-600"></i>
+                </div>
+                <span class="text-sm font-medium text-gray-700">Request Management</span>
+            </a>
+            
+            <a href="#category-management" class="quick-action-btn bg-white rounded-lg p-4 text-center shadow-sm hover:shadow-md transition duration-300">
+                <div class="w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-2">
+                    <i class="fas fa-tags text-purple-600"></i>
+                </div>
+                <span class="text-sm font-medium text-gray-700">Categories</span>
+            </a>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <!-- Recent Users -->
+            <div class="bg-white rounded-2xl shadow-xl overflow-hidden">
+                <div class="bg-gradient-to-r from-blue-600 to-blue-700 px-6 py-4 flex justify-between items-center">
+                    <h2 class="text-lg font-bold text-white">Recent Users</h2>
+                    <a href="#user-management" class="text-white hover:text-blue-200 transition duration-300">
+                        <i class="fas fa-list"></i>
+                    </a>
+                </div>
+                <div class="p-6">
+                    {% for user in recent_users %}
+                    <div class="activity-card bg-white rounded-lg p-4 mb-4 last:mb-0">
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center">
+                                {% if user.profile_photo %}
+                                <img src="{{ user.profile_photo.url }}" class="w-10 h-10 rounded-full object-cover mr-3">
+                                {% else %}
+                                <div class="w-10 h-10 bg-gradient-to-r from-blue-400 to-purple-500 rounded-full flex items-center justify-center text-white font-semibold mr-3">
+                                    {{ user.name|first|upper }}
+                                </div>
+                                {% endif %}
+                                <div>
+                                    <h3 class="font-semibold text-gray-800 text-sm">{{ user.name }}</h3>
+                                    <p class="text-xs text-gray-500">{{ user.email }}</p>
+                                </div>
+                            </div>
+                            <span class="status-badge bg-blue-100 text-blue-800">
+                                {{ user.get_role_display }}
+                            </span>
+                        </div>
+                        <p class="text-xs text-gray-500 mt-2">
+                            Joined {{ user.date_joined|timesince }} ago
+                        </p>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Recent Posts -->
+            <div class="bg-white rounded-2xl shadow-xl overflow-hidden">
+                <div class="bg-gradient-to-r from-green-600 to-green-700 px-6 py-4 flex justify-between items-center">
+                    <h2 class="text-lg font-bold text-white">Recent Posts</h2>
+                    <a href="#post-management" class="text-white hover:text-green-200 transition duration-300">
+                        <i class="fas fa-list"></i>
+                    </a>
+                </div>
+                <div class="p-6">
+                    {% for post in recent_posts %}
+                    <div class="activity-card bg-white rounded-lg p-4 mb-4 last:mb-0">
+                        <div class="flex items-start justify-between">
+                            <div class="flex-1">
+                                <h3 class="font-semibold text-gray-800 text-sm mb-1">{{ post.title }}</h3>
+                                <div class="flex items-center gap-2 mb-2">
+                                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium 
+                                        {% if post.status == 'available' %}bg-green-100 text-green-800
+                                        {% elif post.status == 'requested' %}bg-orange-100 text-orange-800
+                                        {% else %}bg-gray-100 text-gray-800{% endif %}">
+                                        {{ post.get_status_display }}
+                                    </span>
+                                    <span class="text-xs text-gray-500">{{ post.get_type_display }}</span>
+                                </div>
+                                <p class="text-xs text-gray-600 mb-2">
+                                    By: {{ post.donor.name }}
+                                </p>
+                                <p class="text-xs text-gray-500">
+                                    {{ post.created_at|timesince }} ago
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Recent Requests -->
+            <div class="bg-white rounded-2xl shadow-xl overflow-hidden">
+                <div class="bg-gradient-to-r from-orange-600 to-orange-700 px-6 py-4 flex justify-between items-center">
+                    <h2 class="text-lg font-bold text-white">Recent Requests</h2>
+                    <a href="#request-management" class="text-white hover:text-orange-200 transition duration-300">
+                        <i class="fas fa-list"></i>
+                    </a>
+                </div>
+                <div class="p-6">
+                    {% for req in recent_requests %}
+                    <div class="activity-card bg-white rounded-lg p-4 mb-4 last:mb-0">
+                        <div class="flex items-start justify-between">
+                            <div class="flex-1">
+                                <h3 class="font-semibold text-gray-800 text-sm mb-1">{{ req.gift.title }}</h3>
+                                <div class="flex items-center gap-2 mb-2">
+                                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium 
+                                        {% if req.status == 'pending' %}bg-orange-100 text-orange-800
+                                        {% elif req.status == 'approved' %}bg-green-100 text-green-800
+                                        {% else %}bg-red-100 text-red-800{% endif %}">
+                                        {{ req.get_status_display }}
+                                    </span>
+                                </div>
+                                <p class="text-xs text-gray-600 mb-1">
+                                    From: {{ req.requester.name }}
+                                </p>
+                                <p class="text-xs text-gray-600 mb-1">
+                                    To: {{ req.gift.donor.name }}
+                                </p>
+                                <p class="text-xs text-gray-500">
+                                    {{ req.created_at|timesince }} ago
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Top Donors -->
+        <div class="mt-8 bg-white rounded-2xl shadow-xl overflow-hidden">
+            <div class="bg-gradient-to-r from-purple-600 to-purple-700 px-6 py-4">
+                <h2 class="text-lg font-bold text-white">Top Donors</h2>
+            </div>
+            <div class="p-6">
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+                    {% for donor in top_donors %}
+                    <div class="text-center">
+                        {% if donor.profile_photo %}
+                        <img src="{{ donor.profile_photo.url }}" class="w-16 h-16 rounded-full object-cover mx-auto mb-2">
+                        {% else %}
+                        <div class="w-16 h-16 bg-gradient-to-r from-blue-400 to-purple-500 rounded-full flex items-center justify-center text-white font-semibold mx-auto mb-2">
+                            {{ donor.name|first|upper }}
+                        </div>
+                        {% endif %}
+                        <h3 class="font-semibold text-gray-800 text-sm">{{ donor.name }}</h3>
+                        <p class="text-xs text-gray-500">{{ donor.badge_level }}</p>
+                        <p class="text-xs text-blue-600 font-medium mt-1">
+                            {{ donor.completed_transactions }} transactions
+                        </p>
+                    </div>
+                    {% empty %}
+                    <div class="col-span-5 text-center py-8">
+                        <i class="fas fa-trophy text-gray-400 text-4xl mb-3"></i>
+                        <p class="text-gray-500">No donor data yet</p>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+<script>
+    // Role Distribution Chart
+    const roleCtx = document.getElementById('roleChart').getContext('2d');
+    const roleChart = new Chart(roleCtx, {
+        type: 'doughnut',
+        data: {
+            labels: {{ chart_data.roles|safe }},
+            datasets: [{
+                data: {{ chart_data.role_counts|safe }},
+                backgroundColor: [
+                    '#3B82F6', '#10B981', '#8B5CF6', '#F59E0B', '#EF4444'
+                ],
+                borderWidth: 2,
+                borderColor: '#ffffff'
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'bottom'
+                }
+            }
+        }
+    });
+
+    // Post Type Distribution Chart
+    const postTypeCtx = document.getElementById('postTypeChart').getContext('2d');
+    const postTypeChart = new Chart(postTypeCtx, {
+        type: 'pie',
+        data: {
+            labels: {{ chart_data.post_types|safe }},
+            datasets: [{
+                data: {{ chart_data.post_type_counts|safe }},
+                backgroundColor: [
+                    '#10B981', '#F59E0B'
+                ],
+                borderWidth: 2,
+                borderColor: '#ffffff'
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'bottom'
+                }
+            }
+        }
+    });
+
+    // Request Status Chart
+    const requestStatusCtx = document.getElementById('requestStatusChart').getContext('2d');
+    const requestStatusChart = new Chart(requestStatusCtx, {
+        type: 'bar',
+        data: {
+            labels: {{ chart_data.request_statuses|safe }},
+            datasets: [{
+                label: 'Requests',
+                data: {{ chart_data.request_counts|safe }},
+                backgroundColor: [
+                    '#F59E0B', '#10B981', '#EF4444', '#3B82F6'
+                ],
+                borderWidth: 0
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: false
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+
+    // Auto-refresh dashboard every 30 seconds
+    setTimeout(function() {
+        window.location.reload();
+    }, 30000);
+</script>
+{% endblock %}
