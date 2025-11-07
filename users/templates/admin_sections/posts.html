@@ -1,0 +1,88 @@
+<div class="mb-8">
+    <h1 class="text-3xl font-bold text-gray-800">Manage Posts</h1>
+    <p class="text-gray-600 mt-2">Manage all platform posts</p>
+</div>
+
+<div class="bg-white rounded-xl shadow-sm overflow-hidden">
+    <div class="px-6 py-4 border-b border-gray-200">
+        <div class="flex justify-between items-center">
+            <h2 class="text-lg font-semibold text-gray-800">All Posts ({{ all_posts.count }})</h2>
+            <div class="text-sm text-gray-500">
+                Showing {{ all_posts.count }} posts
+            </div>
+        </div>
+    </div>
+    
+    <div class="overflow-x-auto">
+        <table class="w-full">
+            <thead class="bg-gray-50">
+                <tr>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Post</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">User</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Type</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Created</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                </tr>
+            </thead>
+            <tbody class="bg-white divide-y divide-gray-200">
+                {% for post in all_posts %}
+                <tr class="hover:bg-gray-50">
+                    <td class="px-6 py-4">
+                        <div class="flex items-center">
+                            {% if post.image %}
+                            <img src="{{ post.image.url }}" class="w-12 h-12 rounded-lg object-cover mr-3">
+                            {% else %}
+                            <div class="w-12 h-12 bg-gray-200 rounded-lg flex items-center justify-center mr-3">
+                                <i class="fas fa-gift text-gray-400"></i>
+                            </div>
+                            {% endif %}
+                            <div>
+                                <div class="text-sm font-medium text-gray-900">{{ post.title }}</div>
+                                <div class="text-sm text-gray-500 line-clamp-1">{{ post.description|truncatewords:10 }}</div>
+                            </div>
+                        </div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        {{ post.donor.name }}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium 
+                            {% if post.type == 'donation' %}bg-green-100 text-green-800{% else %}bg-orange-100 text-orange-800{% endif %}">
+                            {{ post.get_type_display }}
+                        </span>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <form method="post" class="inline">
+                            {% csrf_token %}
+                            <input type="hidden" name="post_id" value="{{ post.id }}">
+                            <select name="status" onchange="this.form.submit()" 
+                                    class="text-xs border rounded px-2 py-1 
+                                        {% if post.status == 'available' %}text-green-600 border-green-200
+                                        {% elif post.status == 'requested' %}text-orange-600 border-orange-200
+                                        {% else %}text-gray-600 border-gray-200{% endif %}">
+                                <option value="available" {% if post.status == 'available' %}selected{% endif %}>Available</option>
+                                <option value="requested" {% if post.status == 'requested' %}selected{% endif %}>Requested</option>
+                                <option value="completed" {% if post.status == 'completed' %}selected{% endif %}>Completed</option>
+                            </select>
+                            <input type="hidden" name="action" value="edit_status">
+                        </form>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        {{ post.created_at|date:"M j, Y" }}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                        <form method="post" data-confirm="Are you sure you want to delete this post? This action cannot be undone.">
+                            {% csrf_token %}
+                            <input type="hidden" name="post_id" value="{{ post.id }}">
+                            <button type="submit" name="action" value="delete" class="action-btn btn-delete">
+                                <i class="fas fa-trash mr-1"></i>Delete
+                            </button>
+                        </form>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>

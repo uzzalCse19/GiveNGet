@@ -1,34 +1,376 @@
 {% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Send Request - Upohar{% endblock %}
+
+{% block extra_css %}
+<style>
+    .request-container {
+        min-height: 100vh;
+        background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 2rem 1rem;
+    }
+    
+    .request-card {
+        background: white;
+        border-radius: 1rem;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+        padding: 2rem;
+        width: 100%;
+        max-width: 500px;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        transition: all 0.3s ease;
+    }
+    
+    .request-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+    }
+    
+    .card-header {
+        text-align: center;
+        margin-bottom: 2rem;
+    }
+    
+    .card-icon {
+        width: 60px;
+        height: 60px;
+        background: linear-gradient(135deg, #4CAF50 0%, #388E3C 100%);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 1rem;
+        color: white;
+        font-size: 1.5rem;
+    }
+    
+    .card-title {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: #1f2937;
+        margin-bottom: 0.5rem;
+    }
+    
+    .card-subtitle {
+        color: #6b7280;
+        font-size: 0.9rem;
+    }
+    
+    .form-group {
+        margin-bottom: 1.5rem;
+    }
+    
+    .form-label {
+        display: block;
+        font-weight: 600;
+        color: #374151;
+        margin-bottom: 0.5rem;
+        font-size: 0.9rem;
+    }
+    
+    .message-input {
+        width: 100%;
+        padding: 1rem;
+        border: 2px solid #e5e7eb;
+        border-radius: 0.75rem;
+        font-size: 1rem;
+        transition: all 0.3s ease;
+        background: #fafafa;
+        resize: vertical;
+        min-height: 120px;
+        font-family: inherit;
+    }
+    
+    .message-input:focus {
+        outline: none;
+        border-color: #4CAF50;
+        background: white;
+        box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.1);
+    }
+    
+    .message-input::placeholder {
+        color: #9ca3af;
+    }
+    
+    .char-counter {
+        text-align: right;
+        font-size: 0.8rem;
+        color: #6b7280;
+        margin-top: 0.5rem;
+    }
+    
+    .char-counter.warning {
+        color: #f59e0b;
+    }
+    
+    .char-counter.error {
+        color: #ef4444;
+    }
+    
+    .btn-group {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1rem;
+        margin-top: 2rem;
+    }
+    
+    .btn {
+        padding: 0.875rem 1.5rem;
+        border: none;
+        border-radius: 0.75rem;
+        font-weight: 600;
+        font-size: 0.9rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-decoration: none;
+    }
+    
+    .btn-primary {
+        background: linear-gradient(135deg, #4CAF50 0%, #388E3C 100%);
+        color: white;
+    }
+    
+    .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(76, 175, 80, 0.3);
+    }
+    
+    .btn-secondary {
+        background: white;
+        color: #6b7280;
+        border: 2px solid #e5e7eb;
+    }
+    
+    .btn-secondary:hover {
+        background: #f9fafb;
+        border-color: #4CAF50;
+        color: #4CAF50;
+    }
+    
+    .typing-indicator {
+        display: none;
+        align-items: center;
+        color: #4CAF50;
+        font-size: 0.8rem;
+        margin-top: 0.5rem;
+    }
+    
+    .typing-dots {
+        display: flex;
+        margin-left: 0.5rem;
+    }
+    
+    .typing-dots span {
+        width: 4px;
+        height: 4px;
+        background: #4CAF50;
+        border-radius: 50%;
+        margin: 0 1px;
+        animation: typing 1.4s infinite ease-in-out;
+    }
+    
+    .typing-dots span:nth-child(1) { animation-delay: 0s; }
+    .typing-dots span:nth-child(2) { animation-delay: 0.2s; }
+    .typing-dots span:nth-child(3) { animation-delay: 0.4s; }
+    
+    @keyframes typing {
+        0%, 60%, 100% { transform: translateY(0); }
+        30% { transform: translateY(-5px); }
+    }
+    
+    .quick-responses {
+        margin-bottom: 1.5rem;
+    }
+    
+    .quick-response-btn {
+        background: #f3f4f6;
+        border: 1px solid #e5e7eb;
+        border-radius: 0.5rem;
+        padding: 0.5rem 1rem;
+        margin: 0.25rem;
+        font-size: 0.8rem;
+        color: #374151;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+    
+    .quick-response-btn:hover {
+        background: #4CAF50;
+        color: white;
+        border-color: #4CAF50;
+    }
+</style>
+{% endblock %}
 
 {% block content %}
-<div class="row justify-content-center">
-    <div class="col-md-6">
-        <div class="card">
-            <div class="card-header">
-                <h3 class="card-title mb-0">Request Item</h3>
+<div class="request-container">
+    <div class="request-card">
+        <!-- Header -->
+        <div class="card-header">
+            <div class="card-icon">
+                <i class="fas fa-paper-plane"></i>
             </div>
-            <div class="card-body">
-                <div class="alert alert-info">
-                    <h5>You are requesting:</h5>
-                    <p class="mb-0"><strong>{{ post.title }}</strong></p>
-                    <small class="text-muted">Posted by {{ post.donor.name }}</small>
-                </div>
-                
-                <form method="post">
-                    {% csrf_token %}
-                    <div class="mb-3">
-                        <label for="message" class="form-label">Message to Donor (Optional)</label>
-                        <textarea name="message" id="message" class="form-control" rows="4" 
-                                  placeholder="Tell the donor why you're interested in this item..."></textarea>
-                    </div>
-                    
-                    <div class="d-grid gap-2">
-                        <button type="submit" class="btn btn-success">Send Request</button>
-                        <a href="{% url 'post_detail' post.id %}" class="btn btn-secondary">Cancel</a>
-                    </div>
-                </form>
-            </div>
+            <h1 class="card-title">Send Request</h1>
+            <p class="card-subtitle">Send a message to the item owner</p>
         </div>
+
+        <!-- Request Form -->
+        <form method="post" id="requestForm">
+            {% csrf_token %}
+            
+            {% comment %} <!-- Quick Responses -->
+            <div class="quick-responses">
+                <div class="form-label">Quick responses:</div>
+                <div class="d-flex flex-wrap">
+                    <button type="button" class="quick-response-btn" data-message="Hi, is this still available?">
+                        Is this available?
+                    </button>
+                    <button type="button" class="quick-response-btn" data-message="I'm interested! When can I pick it up?">
+                        Interested
+                    </button>
+                    <button type="button" class="quick-response-btn" data-message="Can you tell me more about the condition?">
+                        More details
+                    </button>
+                </div>
+            </div> {% endcomment %}
+
+            <!-- Message Input -->
+            <div class="form-group">
+                <label for="message" class="form-label">Your Message</label>
+                <textarea 
+                    name="message" 
+                    id="message" 
+                    class="message-input" 
+                    rows="4"
+                    placeholder="Write your message here..."
+                    maxlength="500"
+                ></textarea>
+                <div class="char-counter">
+                    <span id="charCount">0</span>/500 characters
+                </div>
+                <div class="typing-indicator" id="typingIndicator">
+                    Typing
+                    <div class="typing-dots">
+                        <span></span>
+                        <span></span>
+                        <span></span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="btn-group">
+                <a href="{% url 'post_detail' post.id %}" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left me-2"></i>
+                    Cancel
+                </a>
+                <button type="submit" class="btn btn-primary" id="submitBtn">
+                    <i class="fas fa-paper-plane me-2"></i>
+                    Send Request
+                </button>
+            </div>
+        </form>
     </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('requestForm');
+    const messageInput = document.getElementById('message');
+    const charCount = document.getElementById('charCount');
+    const charCounter = document.querySelector('.char-counter');
+    const submitBtn = document.getElementById('submitBtn');
+    const typingIndicator = document.getElementById('typingIndicator');
+    const quickResponseBtns = document.querySelectorAll('.quick-response-btn');
+
+    let typingTimer;
+
+    // Character counter
+    messageInput.addEventListener('input', function() {
+        const length = this.value.length;
+        charCount.textContent = length;
+        
+        // Update counter color based on length
+        charCounter.classList.remove('warning', 'error');
+        if (length > 400) {
+            charCounter.classList.add('warning');
+        }
+        if (length > 480) {
+            charCounter.classList.add('error');
+        }
+    });
+
+    // Quick response buttons
+    quickResponseBtns.forEach(btn => {
+        btn.addEventListener('click', function() {
+            const message = this.getAttribute('data-message');
+            messageInput.value = message;
+            messageInput.focus();
+            
+            // Trigger input event to update character count
+            const event = new Event('input');
+            messageInput.dispatchEvent(event);
+        });
+    });
+
+    // Typing indicator
+    messageInput.addEventListener('input', function() {
+        // Show typing indicator
+        typingIndicator.style.display = 'flex';
+        
+        // Clear existing timer
+        clearTimeout(typingTimer);
+        
+        // Hide typing indicator after 1 second of inactivity
+        typingTimer = setTimeout(() => {
+            typingIndicator.style.display = 'none';
+        }, 1000);
+    });
+
+    // Auto-expand textarea
+    messageInput.addEventListener('input', function() {
+        this.style.height = 'auto';
+        this.style.height = (this.scrollHeight) + 'px';
+    });
+
+    // Form submission
+    form.addEventListener('submit', function(e) {
+        // Basic validation
+        if (messageInput.value.trim().length === 0) {
+            e.preventDefault();
+            messageInput.focus();
+            messageInput.style.borderColor = '#ef4444';
+            return;
+        }
+        
+        // Disable submit button to prevent double submission
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Sending...';
+    });
+
+    // Keyboard shortcuts
+    document.addEventListener('keydown', function(e) {
+        // Ctrl + Enter to submit
+        if (e.ctrlKey && e.key === 'Enter') {
+            form.dispatchEvent(new Event('submit'));
+        }
+        // Escape to cancel
+        if (e.key === 'Escape') {
+            window.location.href = "{% url 'post_detail' post.id %}";
+        }
+    });
+
+    // Focus on message input when page loads
+    messageInput.focus();
+});
+</script>
 {% endblock %}

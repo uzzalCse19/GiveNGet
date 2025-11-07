@@ -1,0 +1,280 @@
+{% load static %}
+
+<div class="mb-8">
+    <h1 class="text-3xl font-bold text-gray-800">Manage Requests</h1>
+    <p class="text-gray-600 mt-2">Manage all exchange and donation requests</p>
+</div>
+
+<div class="bg-white rounded-xl shadow-sm overflow-hidden">
+    <div class="px-6 py-4 border-b border-gray-200">
+        <div class="flex justify-between items-center">
+            <h2 class="text-lg font-semibold text-gray-800">All Requests ({{ all_requests.count }})</h2>
+            <div class="flex items-center space-x-4">
+                <div class="text-sm text-gray-500">
+                    Total: {{ all_requests.count }} requests
+                </div>
+                <div class="flex space-x-2">
+                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs bg-orange-100 text-orange-800">
+                        <i class="fas fa-clock mr-1"></i> {{ pending_count }} Pending
+                    </span>
+                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs bg-green-100 text-green-800">
+                        <i class="fas fa-check mr-1"></i> {{ approved_count }} Approved
+                    </span>
+                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs bg-red-100 text-red-800">
+                        <i class="fas fa-times mr-1"></i> {{ rejected_count }} Rejected
+                    </span>
+                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs bg-blue-100 text-blue-800">
+                        <i class="fas fa-check-double mr-1"></i> {{ completed_count }} Completed
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="overflow-x-auto">
+        <table class="w-full">
+            <thead class="bg-gray-50">
+                <tr>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Request Details</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">From User</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">To User</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Post Type</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                </tr>
+            </thead>
+            <tbody class="bg-white divide-y divide-gray-200">
+                {% for req in all_requests %}
+                <tr class="hover:bg-gray-50">
+                    <!-- Request Details -->
+                    <td class="px-6 py-4">
+                        <div class="flex items-start space-x-3">
+                            {% if req.gift.image %}
+                            <img src="{{ req.gift.image.url }}" class="w-12 h-12 rounded-lg object-cover flex-shrink-0">
+                            {% else %}
+                            <div class="w-12 h-12 bg-gray-200 rounded-lg flex items-center justify-center flex-shrink-0">
+                                <i class="fas fa-gift text-gray-400"></i>
+                            </div>
+                            {% endif %}
+                            <div class="min-w-0 flex-1">
+                                <div class="text-sm font-medium text-gray-900 mb-1">{{ req.gift.title }}</div>
+                                {% if req.message %}
+                                <div class="text-xs text-gray-500 line-clamp-2" title="{{ req.message }}">
+                                    <i class="fas fa-comment mr-1 text-blue-500"></i>
+                                    {{ req.message|truncatewords:15 }}
+                                </div>
+                                {% else %}
+                                <div class="text-xs text-gray-400">No message</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </td>
+
+                    <!-- From User -->
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="flex items-center">
+                            {% if req.requester.profile_photo %}
+                            <img src="{{ req.requester.profile_photo.url }}" class="w-8 h-8 rounded-full object-cover mr-2">
+                            {% else %}
+                            <div class="w-8 h-8 bg-gradient-to-r from-blue-400 to-purple-500 rounded-full flex items-center justify-center text-white text-xs font-semibold mr-2">
+                                {{ req.requester.name|first|upper }}
+                            </div>
+                            {% endif %}
+                            <div>
+                                <div class="text-sm font-medium text-gray-900">{{ req.requester.name }}</div>
+                                <div class="text-xs text-gray-500">{{ req.requester.email }}</div>
+                            </div>
+                        </div>
+                    </td>
+
+                    <!-- To User -->
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="flex items-center">
+                            {% if req.gift.donor.profile_photo %}
+                            <img src="{{ req.gift.donor.profile_photo.url }}" class="w-8 h-8 rounded-full object-cover mr-2">
+                            {% else %}
+                            <div class="w-8 h-8 bg-gradient-to-r from-green-400 to-blue-500 rounded-full flex items-center justify-center text-white text-xs font-semibold mr-2">
+                                {{ req.gift.donor.name|first|upper }}
+                            </div>
+                            {% endif %}
+                            <div>
+                                <div class="text-sm font-medium text-gray-900">{{ req.gift.donor.name }}</div>
+                                <div class="text-xs text-gray-500">{{ req.gift.donor.email }}</div>
+                            </div>
+                        </div>
+                    </td>
+
+                    <!-- Post Type -->
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium 
+                            {% if req.gift.type == 'donation' %}bg-green-100 text-green-800{% else %}bg-orange-100 text-orange-800{% endif %}">
+                            <i class="fas {% if req.gift.type == 'donation' %}fa-gift{% else %}fa-exchange-alt{% endif %} mr-1"></i>
+                            {{ req.gift.get_type_display }}
+                        </span>
+                    </td>
+
+                    <!-- Status -->
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium 
+                            {% if req.status == 'pending' %}bg-orange-100 text-orange-800
+                            {% elif req.status == 'approved' %}bg-green-100 text-green-800
+                            {% elif req.status == 'rejected' %}bg-red-100 text-red-800
+                            {% else %}bg-blue-100 text-blue-800{% endif %}">
+                            <i class="fas 
+                                {% if req.status == 'pending' %}fa-clock
+                                {% elif req.status == 'approved' %}fa-check
+                                {% elif req.status == 'rejected' %}fa-times
+                                {% else %}fa-check-double{% endif %} mr-1">
+                            </i>
+                            {{ req.get_status_display }}
+                        </span>
+                    </td>
+
+                    <!-- Date -->
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        <div class="flex flex-col">
+                            <span>{{ req.created_at|date:"M j, Y" }}</span>
+                            <span class="text-xs text-gray-400">{{ req.created_at|timesince }} ago</span>
+                        </div>
+                    </td>
+
+                    <!-- Actions -->
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                        <div class="flex space-x-2">
+                            <!-- View -->
+                            <a href="{% url 'post_detail' req.gift.id %}" class="action-btn btn-edit" title="View Post Details">
+                                <i class="fas fa-eye mr-1"></i>View
+                            </a>
+
+                            <!-- Quick Actions -->
+                            {% if req.status == 'pending' %}
+                            <form method="post" class="inline">
+                                {% csrf_token %}
+                                <input type="hidden" name="request_id" value="{{ req.id }}">
+                                <button type="submit" name="action" value="approve" class="action-btn btn-activate" title="Approve Request">
+                                    <i class="fas fa-check mr-1"></i>Approve
+                                </button>
+                            </form>
+                            <form method="post" class="inline">
+                                {% csrf_token %}
+                                <input type="hidden" name="request_id" value="{{ req.id }}">
+                                <button type="submit" name="action" value="reject" class="action-btn btn-delete" title="Reject Request">
+                                    <i class="fas fa-times mr-1"></i>Reject
+                                </button>
+                            </form>
+                            {% elif req.status == 'approved' %}
+                            <form method="post" class="inline">
+                                {% csrf_token %}
+                                <input type="hidden" name="request_id" value="{{ req.id }}">
+                                <button type="submit" name="action" value="complete" class="action-btn bg-blue-100 text-blue-800 hover:bg-blue-200" title="Mark as Completed">
+                                    <i class="fas fa-check-double mr-1"></i>Complete
+                                </button>
+                            </form>
+                            {% endif %}
+
+                            <!-- Delete -->
+                            <form method="post" data-confirm="Are you sure you want to delete this request? This action cannot be undone.">
+                                {% csrf_token %}
+                                <input type="hidden" name="request_id" value="{{ req.id }}">
+                                <button type="submit" name="action" value="delete" class="action-btn btn-delete" title="Delete Request">
+                                    <i class="fas fa-trash mr-1"></i>Delete
+                                </button>
+                            </form>
+                        </div>
+                    </td>
+                </tr>
+
+                {% empty %}
+                <tr>
+                    <td colspan="7" class="px-6 py-12 text-center">
+                        <div class="flex flex-col items-center justify-center">
+                            <i class="fas fa-exchange-alt text-gray-400 text-4xl mb-3"></i>
+                            <p class="text-gray-500 text-lg mb-2">No requests found</p>
+                            <p class="text-gray-400 text-sm">There are no requests in the system yet.</p>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Request Statistics -->
+<div class="mt-8 grid grid-cols-1 md:grid-cols-4 gap-6">
+    <div class="bg-white rounded-xl p-6 shadow-sm border-l-4 border-orange-500">
+        <div class="flex items-center justify-between">
+            <div>
+                <p class="text-sm font-medium text-gray-600">Pending Requests</p>
+                <p class="text-2xl font-bold text-orange-600">{{ pending_count }}</p>
+            </div>
+            <div class="w-12 h-12 bg-orange-100 rounded-full flex items-center justify-center">
+                <i class="fas fa-clock text-orange-600 text-xl"></i>
+            </div>
+        </div>
+    </div>
+
+    <div class="bg-white rounded-xl p-6 shadow-sm border-l-4 border-green-500">
+        <div class="flex items-center justify-between">
+            <div>
+                <p class="text-sm font-medium text-gray-600">Approved Requests</p>
+                <p class="text-2xl font-bold text-green-600">{{ approved_count }}</p>
+            </div>
+            <div class="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center">
+                <i class="fas fa-check text-green-600 text-xl"></i>
+            </div>
+        </div>
+    </div>
+
+    <div class="bg-white rounded-xl p-6 shadow-sm border-l-4 border-red-500">
+        <div class="flex items-center justify-between">
+            <div>
+                <p class="text-sm font-medium text-gray-600">Rejected Requests</p>
+                <p class="text-2xl font-bold text-red-500">{{ rejected_count }}</p>
+            </div>
+            <div class="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center">
+                <i class="fas fa-times text-red-500 text-xl"></i>
+            </div>
+        </div>
+    </div>
+
+    <div class="bg-white rounded-xl p-6 shadow-sm border-l-4 border-blue-500">
+        <div class="flex items-center justify-between">
+            <div>
+                <p class="text-sm font-medium text-gray-600">Completed Requests</p>
+                <p class="text-2xl font-bold text-blue-600">{{ completed_count }}</p>
+            </div>
+            <div class="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
+                <i class="fas fa-check-double text-blue-600 text-xl"></i>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Filter Options -->
+<div class="mt-6 bg-white rounded-xl p-6 shadow-sm">
+    <h3 class="text-lg font-semibold text-gray-800 mb-4">Filter Requests</h3>
+    <div class="flex flex-wrap gap-4">
+        <a href="?section=requests" class="px-4 py-2 rounded-lg text-sm font-medium transition duration-300
+            {% if not request.GET.status %}bg-blue-600 text-white{% else %}bg-gray-100 text-gray-700 hover:bg-gray-200{% endif %}">
+            All Requests
+        </a>
+        <a href="?section=requests&status=pending" class="px-4 py-2 rounded-lg text-sm font-medium transition duration-300
+            {% if request.GET.status == 'pending' %}bg-orange-600 text-white{% else %}bg-gray-100 text-gray-700 hover:bg-gray-200{% endif %}">
+            Pending
+        </a>
+        <a href="?section=requests&status=approved" class="px-4 py-2 rounded-lg text-sm font-medium transition duration-300
+            {% if request.GET.status == 'approved' %}bg-green-600 text-white{% else %}bg-gray-100 text-gray-700 hover:bg-gray-200{% endif %}">
+            Approved
+        </a>
+        <a href="?section=requests&status=rejected" class="px-4 py-2 rounded-lg text-sm font-medium transition duration-300
+            {% if request.GET.status == 'rejected' %}bg-red-600 text-white{% else %}bg-gray-100 text-gray-700 hover:bg-gray-200{% endif %}">
+            Rejected
+        </a>
+        <a href="?section=requests&status=completed" class="px-4 py-2 rounded-lg text-sm font-medium transition duration-300
+            {% if request.GET.status == 'completed' %}bg-blue-600 text-white{% else %}bg-gray-100 text-gray-700 hover:bg-gray-200{% endif %}">
+            Completed
+        </a>
+    </div>
+</div>

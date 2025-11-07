@@ -22,11 +22,6 @@ class CustomUserManager(BaseUserManager):
 
 class User(AbstractUser):
     username = None
-    ROLE_CHOICES = [
-        ('donor', 'Donor'),
-        ('receiver', 'Receiver'),
-        ('exchanger', 'Exchanger'),
-    ]
     
     STATUS_CHOICES = [
         ('active', 'Active'),
@@ -45,12 +40,13 @@ class User(AbstractUser):
             message="Enter a valid Bangladeshi phone number"
         )]
     )
-    role = models.CharField(max_length=10, choices=ROLE_CHOICES, default='donor')
+    # REMOVED: role field - no user roles
     status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='active')
     profile_photo = models.ImageField(upload_to='profile_photos/', null=True, blank=True)
     address = models.TextField(blank=True)
     total_donations = models.PositiveIntegerField(default=0)
-    completed_transactions = models.PositiveIntegerField(default=0)
+    completed_donations = models.PositiveIntegerField(default=0)  # Changed from completed_transactions
+    completed_exchanges = models.PositiveIntegerField(default=0)  # New field for exchanges
     
     groups = models.ManyToManyField(
         'auth.Group',
@@ -66,7 +62,7 @@ class User(AbstractUser):
     )
 
     USERNAME_FIELD = 'email'
-    REQUIRED_FIELDS = []
+    REQUIRED_FIELDS = ['name']
 
     objects = CustomUserManager()
 
@@ -75,14 +71,16 @@ class User(AbstractUser):
     
     @property
     def badge_level(self):
-        if self.completed_transactions >= 50:
+        # Badge ONLY based on completed donations, NOT exchanges
+        if self.completed_donations >= 50:
             return '🏅 Super Donor'
-        elif self.completed_transactions >= 20:
+        elif self.completed_donations >= 20:
             return '🌟 Regular Donor'
-        elif self.completed_transactions >= 5:
+        elif self.completed_donations >= 5:
             return '⭐ Beginner Donor'
-        return '🆕 Newbie'
+        return '🆕 None'
+    
     @property
-    def is_donor_user(self):
-        return self.is_superuser or self.is_staff or self.role == 'donor'
-
+    def total_completed_transactions(self):
+        # Total of both donations and exchanges for statistics
+        return self.completed_donations + self.completed_exchanges

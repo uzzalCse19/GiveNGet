@@ -1,0 +1,205 @@
+<div class="mb-8">
+    <h1 class="text-3xl font-bold text-gray-800">Manage Categories</h1>
+    <p class="text-gray-600 mt-2">Add, edit, and manage item categories</p>
+</div>
+
+<!-- Add New Category Form -->
+<div class="bg-white rounded-xl shadow-sm overflow-hidden mb-8">
+    <div class="px-6 py-4 border-b border-gray-200">
+        <h2 class="text-lg font-semibold text-gray-800">Add New Category</h2>
+    </div>
+    <div class="p-6">
+        <form method="post" class="flex gap-4">
+            {% csrf_token %}
+            <div class="flex-1">
+                <input type="text" 
+                       name="name" 
+                       placeholder="Enter category name (e.g., Electronics, Books, Clothing...)" 
+                       class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition duration-300"
+                       required>
+            </div>
+            <button type="submit" 
+                    name="add_category"
+                    class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-medium transition duration-300 flex items-center">
+                <i class="fas fa-plus mr-2"></i>
+                Add Category
+            </button>
+        </form>
+    </div>
+</div>
+
+<!-- Categories List -->
+<div class="bg-white rounded-xl shadow-sm overflow-hidden">
+    <div class="px-6 py-4 border-b border-gray-200">
+        <div class="flex justify-between items-center">
+            <h2 class="text-lg font-semibold text-gray-800">All Categories ({{ categories.count }})</h2>
+            <div class="text-sm text-gray-500">
+                Active: {{ active_count }} • Inactive: {{ inactive_count }}
+            </div>
+        </div>
+    </div>
+    
+    <div class="overflow-x-auto">
+        <table class="w-full">
+            <thead class="bg-gray-50">
+                <tr>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Category Name</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Posts Count</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Created</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                </tr>
+            </thead>
+            <tbody class="bg-white divide-y divide-gray-200">
+                {% for category in categories %}
+                <tr class="hover:bg-gray-50">
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="flex items-center">
+                            <div class="w-10 h-10 bg-gradient-to-r from-purple-400 to-pink-500 rounded-lg flex items-center justify-center text-white font-semibold mr-3">
+                                {{ category.name|first|upper }}
+                            </div>
+                            <div>
+                                <div class="text-sm font-medium text-gray-900">{{ category.name }}</div>
+                                <div class="text-xs text-gray-500">ID: {{ category.id }}</div>
+                            </div>
+                        </div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium 
+                            {% if category.is_active %}bg-green-100 text-green-800{% else %}bg-red-100 text-red-800{% endif %}">
+                            <i class="fas {% if category.is_active %}fa-check-circle{% else %}fa-times-circle{% endif %} mr-1"></i>
+                            {{ category.is_active|yesno:"Active,Inactive" }}
+                        </span>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="flex items-center">
+                            <span class="text-sm font-medium text-gray-900">{{ category.post_count }}</span>
+                            <span class="text-xs text-gray-500 ml-1">posts</span>
+                        </div>
+                        {% if category.post_count > 0 %}
+                        <div class="w-24 bg-gray-200 rounded-full h-2 mt-1">
+                            <div class="bg-blue-600 h-2 rounded-full" 
+                                 style="width: {% widthratio category.post_count categories.0.post_count 100 %}%"></div>
+                        </div>
+                        {% endif %}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        System Category
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                        <div class="flex space-x-2">
+                            <!-- Toggle Active/Inactive -->
+                            <form method="post" class="inline">
+                                {% csrf_token %}
+                                <input type="hidden" name="category_id" value="{{ category.id }}">
+                                <button type="submit" 
+                                        name="toggle_category"
+                                        class="action-btn {% if category.is_active %}btn-delete{% else %}btn-activate{% endif %}"
+                                        title="{% if category.is_active %}Deactivate Category{% else %}Activate Category{% endif %}">
+                                    <i class="fas {% if category.is_active %}fa-eye-slash{% else %}fa-eye{% endif %} mr-1"></i>
+                                    {{ category.is_active|yesno:"Deactivate,Activate" }}
+                                </button>
+                            </form>
+                            
+                            <!-- Delete Category -->
+                            {% if category.post_count == 0 %}
+                            <form method="post" 
+                                  data-confirm="Are you sure you want to delete the category '{{ category.name }}'? This action cannot be undone.">
+                                {% csrf_token %}
+                                <input type="hidden" name="category_id" value="{{ category.id }}">
+                                <button type="submit" 
+                                        name="delete_category"
+                                        class="action-btn btn-delete"
+                                        title="Delete Category">
+                                    <i class="fas fa-trash mr-1"></i>
+                                    Delete
+                                </button>
+                            </form>
+                            {% else %}
+                            <button class="action-btn bg-gray-100 text-gray-400 cursor-not-allowed"
+                                    title="Cannot delete category with posts"
+                                    disabled>
+                                <i class="fas fa-trash mr-1"></i>
+                                Delete
+                            </button>
+                            {% endif %}
+                        </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="5" class="px-6 py-12 text-center">
+                        <div class="flex flex-col items-center justify-center">
+                            <i class="fas fa-tags text-gray-400 text-4xl mb-3"></i>
+                            <p class="text-gray-500 text-lg mb-2">No categories found</p>
+                            <p class="text-gray-400 text-sm">Add your first category using the form above.</p>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Category Statistics -->
+<div class="mt-8 grid grid-cols-1 md:grid-cols-3 gap-6">
+    <div class="bg-white rounded-xl p-6 shadow-sm border-l-4 border-purple-500">
+        <div class="flex items-center justify-between">
+            <div>
+                <p class="text-sm font-medium text-gray-600">Total Categories</p>
+                <p class="text-2xl font-bold text-purple-600">{{ categories.count }}</p>
+            </div>
+            <div class="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center">
+                <i class="fas fa-tags text-purple-600 text-xl"></i>
+            </div>
+        </div>
+    </div>
+    
+    <div class="bg-white rounded-xl p-6 shadow-sm border-l-4 border-green-500">
+        <div class="flex items-center justify-between">
+            <div>
+                <p class="text-sm font-medium text-gray-600">Active Categories</p>
+                <p class="text-2xl font-bold text-green-600">{{ active_count }}</p>
+            </div>
+            <div class="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center">
+                <i class="fas fa-check-circle text-green-600 text-xl"></i>
+            </div>
+        </div>
+    </div>
+    
+    <div class="bg-white rounded-xl p-6 shadow-sm border-l-4 border-red-500">
+        <div class="flex items-center justify-between">
+            <div>
+                <p class="text-sm font-medium text-gray-600">Inactive Categories</p>
+                <p class="text-2xl font-bold text-red-500">{{ inactive_count }}</p>
+            </div>
+            <div class="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center">
+                <i class="fas fa-times-circle text-red-500 text-xl"></i>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Usage Guidelines -->
+<div class="mt-8 bg-blue-50 border border-blue-200 rounded-xl p-6">
+    <h3 class="text-lg font-semibold text-blue-800 mb-3">Category Management Guidelines</h3>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-blue-700">
+        <div class="flex items-start">
+            <i class="fas fa-info-circle mt-1 mr-2 text-blue-500"></i>
+            <span>Categories help users organize their posts and make items easier to find</span>
+        </div>
+        <div class="flex items-start">
+            <i class="fas fa-exclamation-triangle mt-1 mr-2 text-orange-500"></i>
+            <span>You cannot delete categories that have posts assigned to them</span>
+        </div>
+        <div class="flex items-start">
+            <i class="fas fa-lightbulb mt-1 mr-2 text-yellow-500"></i>
+            <span>Use clear, descriptive names that users will understand</span>
+        </div>
+        <div class="flex items-start">
+            <i class="fas fa-ban mt-1 mr-2 text-red-500"></i>
+            <span>Deactivated categories won't appear when users create new posts</span>
+        </div>
+    </div>
+</div>

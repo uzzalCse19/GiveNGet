@@ -8,17 +8,16 @@ class CustomUserAdmin(UserAdmin):
     list_display = [
         'email', 
         'name', 
-        'role_display', 
         'status_display', 
         'is_staff', 
         'is_superuser',
-        'completed_transactions',
+        'completed_donations',
+        'completed_exchanges',
         'badge_display',
         'profile_photo_preview',
         'date_joined'
     ]
     list_filter = [
-        'role', 
         'status', 
         'is_staff', 
         'is_superuser', 
@@ -29,7 +28,8 @@ class CustomUserAdmin(UserAdmin):
         'date_joined', 
         'last_login', 
         'profile_photo_large',
-        'badge_info'
+        'badge_info',
+        'total_completed_transactions'
     ]
     ordering = ['-date_joined']
     actions = [
@@ -51,13 +51,17 @@ class CustomUserAdmin(UserAdmin):
                 'address'
             )
         }),
-        ('Role & Status', {
+        ('Statistics', {
             'fields': (
-                'role', 
-                'status',
+                'completed_donations',
+                'completed_exchanges',
+                'total_completed_transactions',
                 'badge_info',
-                'completed_transactions',
-                'total_donations'
+            )
+        }),
+        ('Status', {
+            'fields': (
+                'status',
             )
         }),
         ('Permissions', {
@@ -82,25 +86,11 @@ class CustomUserAdmin(UserAdmin):
                 'name', 
                 'password1', 
                 'password2', 
-                'role',
                 'is_staff', 
                 'is_superuser'
             ),
         }),
     )
-
-    def role_display(self, obj):
-        colors = {
-            'donor': 'green',
-            'receiver': 'blue',
-            'exchanger': 'orange'
-        }
-        return format_html(
-            '<span style="color: {}; font-weight: bold;">{}</span>',
-            colors.get(obj.role, 'black'),
-            obj.get_role_display()
-        )
-    role_display.short_description = 'Role'
 
     def status_display(self, obj):
         colors = {
@@ -152,11 +142,20 @@ class CustomUserAdmin(UserAdmin):
 
     def badge_info(self, obj):
         return format_html(
-            '<strong>{}</strong><br><small>Completed Transactions: {}</small>',
+            '<strong>{}</strong><br>'
+            '<small>Completed Donations: {}</small><br>'
+            '<small>Completed Exchanges: {}</small><br>'
+            '<small>Total Transactions: {}</small>',
             obj.badge_level,
-            obj.completed_transactions
+            obj.completed_donations,
+            obj.completed_exchanges,
+            obj.total_completed_transactions
         )
-    badge_info.short_description = 'Badge Information'
+    badge_info.short_description = 'User Statistics'
+
+    def total_completed_transactions(self, obj):
+        return obj.completed_donations + obj.completed_exchanges
+    total_completed_transactions.short_description = 'Total Transactions'
 
     def activate_users(self, request, queryset):
         updated = queryset.update(status='active', is_active=True)
@@ -187,13 +186,6 @@ class CustomUserAdmin(UserAdmin):
 
     def get_queryset(self, request):
         return super().get_queryset(request).prefetch_related('groups', 'user_permissions')
-
-    def get_form(self, request, obj=None, **kwargs):
-        form = super().get_form(request, obj, **kwargs)
-        # Make role field editable only for non-superusers when creating new users
-        if obj is None and not request.user.is_superuser:
-            form.base_fields['role'].disabled = True
-        return form
 
 # Register the custom User model with the custom admin interface
 admin.site.register(User, CustomUserAdmin)

@@ -1,5 +1,6 @@
 from django import forms
 from Upohar.models import UpoharPost
+
 class UpoharPostForm(forms.ModelForm):
     class Meta:
         model = UpoharPost
@@ -7,8 +8,8 @@ class UpoharPostForm(forms.ModelForm):
                  'exchange_item_name', 'exchange_item_description']
         widgets = {
             'type': forms.Select(attrs={
-                'class': 'hidden'
-            }),
+                'class': 'w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition duration-300'
+            }),  # REMOVED: 'hidden' class - show type selection
             'category': forms.Select(attrs={
                 'class': 'w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition duration-300'
             }),
@@ -48,23 +49,18 @@ class UpoharPostForm(forms.ModelForm):
         # Make exchange fields not required initially
         self.fields['exchange_item_name'].required = False
         self.fields['exchange_item_description'].required = False
-    
-    def clean(self):
-        cleaned_data = super().clean()
-        post_type = cleaned_data.get('type')
         
-        if post_type == 'exchange':
-            if not cleaned_data.get('exchange_item_name'):
-                self.add_error('exchange_item_name', 'This field is required for exchange posts.')
-            if not cleaned_data.get('exchange_item_description'):
-                self.add_error('exchange_item_description', 'This field is required for exchange posts.')
-        
-        return cleaned_data
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        # Make exchange fields not required initially
-        self.fields['exchange_item_name'].required = False
-        self.fields['exchange_item_description'].required = False
+        # Add JavaScript-friendly classes for dynamic field handling
+        self.fields['type'].widget.attrs.update({
+            'id': 'id_post_type',
+            'onchange': 'toggleExchangeFields()'
+        })
+        self.fields['exchange_item_name'].widget.attrs.update({
+            'id': 'id_exchange_item_name'
+        })
+        self.fields['exchange_item_description'].widget.attrs.update({
+            'id': 'id_exchange_item_description'
+        })
     
     def clean(self):
         cleaned_data = super().clean()

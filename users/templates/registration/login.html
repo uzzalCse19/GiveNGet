@@ -26,19 +26,77 @@
                 <form method="post" class="space-y-6">
                     {% csrf_token %}
                     
-                    <!-- Error Messages -->
-                    {% if form.errors %}
-                    <div class="bg-red-50 border border-red-200 rounded-lg p-4 animate-shake">
-                        <div class="flex items-center">
-                            <div class="flex-shrink-0">
-                                <i class="fas fa-exclamation-circle text-red-400"></i>
+                    <!-- Success Messages -->
+                    {% if messages %}
+                    <div class="space-y-2">
+                        {% for message in messages %}
+                            {% if message.tags == 'success' %}
+                            <div class="bg-green-50 border border-green-200 rounded-lg p-4 animate-fade-in">
+                                <div class="flex items-center">
+                                    <div class="flex-shrink-0">
+                                        <i class="fas fa-check-circle text-green-400"></i>
+                                    </div>
+                                    <div class="ml-3">
+                                        <p class="text-sm text-green-700">
+                                            {{ message }}
+                                        </p>
+                                    </div>
+                                </div>
                             </div>
-                            <div class="ml-3">
-                                <p class="text-sm text-red-700">
-                                    Your email and password didn't match. Please try again.
-                                </p>
+                            {% elif message.tags == 'error' %}
+                            <div class="bg-red-50 border border-red-200 rounded-lg p-4 animate-shake">
+                                <div class="flex items-center">
+                                    <div class="flex-shrink-0">
+                                        <i class="fas fa-exclamation-circle text-red-400"></i>
+                                    </div>
+                                    <div class="ml-3">
+                                        <p class="text-sm text-red-700">
+                                            {{ message }}
+                                        </p>
+                                    </div>
+                                </div>
                             </div>
-                        </div>
+                            {% elif message.tags == 'info' %}
+                            <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 animate-fade-in">
+                                <div class="flex items-center">
+                                    <div class="flex-shrink-0">
+                                        <i class="fas fa-info-circle text-blue-400"></i>
+                                    </div>
+                                    <div class="ml-3">
+                                        <p class="text-sm text-blue-700">
+                                            {{ message }}
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                            {% elif message.tags == 'warning' %}
+                            <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4 animate-fade-in">
+                                <div class="flex items-center">
+                                    <div class="flex-shrink-0">
+                                        <i class="fas fa-exclamation-triangle text-yellow-400"></i>
+                                    </div>
+                                    <div class="ml-3">
+                                        <p class="text-sm text-yellow-700">
+                                            {{ message }}
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                            {% else %}
+                            <div class="bg-gray-50 border border-gray-200 rounded-lg p-4 animate-fade-in">
+                                <div class="flex items-center">
+                                    <div class="flex-shrink-0">
+                                        <i class="fas fa-info-circle text-gray-400"></i>
+                                    </div>
+                                    <div class="ml-3">
+                                        <p class="text-sm text-gray-700">
+                                            {{ message }}
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endif %}
+                        {% endfor %}
                     </div>
                     {% endif %}
 
@@ -57,6 +115,7 @@
                                 placeholder="Enter your email" 
                                 required 
                                 autofocus
+                                value="{{ form.username.value|default:'' }}"
                             >
                             <div class="absolute inset-y-0 right-0 pr-3 flex items-center">
                                 <i class="fas fa-check-circle text-green-500 opacity-0 transition-opacity duration-300" id="email-valid"></i>
@@ -103,7 +162,7 @@
                             </label>
                         </div>
                         
-                        <a href="#" class="text-sm text-blue-600 hover:text-blue-500 transition duration-300">
+                        {% comment %} <a href="{% url 'password_reset' %}" class="text-sm text-blue-600 hover:text-blue-500 transition duration-300"> {% endcomment %}
                             Forgot password?
                         </a>
                     </div>
@@ -142,6 +201,16 @@
                         Create New Account
                     </a>
                 </div>
+
+                <!-- Resend Activation Link -->
+                <div class="mt-4 text-center">
+                    <p class="text-sm text-gray-600">
+                        Didn't receive activation email?
+                        <a href="#" id="resend-activation" class="text-blue-600 hover:text-blue-500 transition duration-300">
+                            Resend activation link
+                        </a>
+                    </p>
+                </div>
             </div>
 
             <!-- Card Footer -->
@@ -160,12 +229,49 @@
         <div class="mt-8 bg-yellow-50 border border-yellow-200 rounded-lg p-4">
             <h3 class="text-sm font-medium text-yellow-800 mb-2">Demo Accounts (Development Only)</h3>
             <div class="text-xs text-yellow-700 space-y-1">
-                <p><strong>Donor:</strong> donor@example.com / password</p>
-                <p><strong>Receiver:</strong> receiver@example.com / password</p>
-                <p><strong>Exchanger:</strong> exchanger@example.com / password</p>
+                <p><strong>Regular User 1:</strong> user1@example.com / password123</p>
+                <p><strong>Regular User 2:</strong> user2@example.com / password123</p>
+                <p><strong>Admin:</strong> admin@example.com / admin123</p>
             </div>
         </div>
         {% endif %}
+    </div>
+</div>
+
+<!-- Resend Activation Modal -->
+<div id="resendModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden z-50">
+    <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+        <div class="mt-3 text-center">
+            <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-blue-100">
+                <i class="fas fa-envelope text-blue-600 text-xl"></i>
+            </div>
+            <h3 class="text-lg leading-6 font-medium text-gray-900 mt-2">Resend Activation Email</h3>
+            <div class="mt-2 px-7 py-3">
+                <p class="text-sm text-gray-500">
+                    Enter your email address to receive a new activation link.
+                </p>
+                <input 
+                    type="email" 
+                    id="resendEmail" 
+                    placeholder="your-email@example.com"
+                    class="mt-3 w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+            </div>
+            <div class="items-center px-4 py-3">
+                <button 
+                    id="confirmResend" 
+                    class="px-4 py-2 bg-blue-600 text-white text-base font-medium rounded-md w-full shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                    Send Activation Link
+                </button>
+                <button 
+                    id="cancelResend" 
+                    class="mt-2 px-4 py-2 bg-gray-300 text-gray-700 text-base font-medium rounded-md w-full shadow-sm hover:bg-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-500"
+                >
+                    Cancel
+                </button>
+            </div>
+        </div>
     </div>
 </div>
 {% endblock %}
@@ -210,7 +316,67 @@
         button.disabled = true;
     });
 
-    // Add shake animation for errors
+    // Resend activation modal
+    document.getElementById('resend-activation').addEventListener('click', function(e) {
+        e.preventDefault();
+        document.getElementById('resendModal').classList.remove('hidden');
+    });
+
+    document.getElementById('cancelResend').addEventListener('click', function() {
+        document.getElementById('resendModal').classList.add('hidden');
+    });
+
+    document.getElementById('confirmResend').addEventListener('click', function() {
+        const email = document.getElementById('resendEmail').value;
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        
+        if (!emailRegex.test(email)) {
+            alert('Please enter a valid email address.');
+            return;
+        }
+
+        // Show loading state
+        const button = document.getElementById('confirmResend');
+        const originalText = button.innerHTML;
+        button.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Sending...';
+        button.disabled = true;
+
+        // Send AJAX request to resend activation
+        fetch('/resend-activation/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': '{{ csrf_token }}'
+            },
+            body: JSON.stringify({ email: email })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert('Activation email sent! Please check your inbox.');
+                document.getElementById('resendModal').classList.add('hidden');
+            } else {
+                alert(data.message || 'Failed to send activation email.');
+            }
+        })
+        .catch(error => {
+            alert('An error occurred. Please try again.');
+        })
+        .finally(() => {
+            button.innerHTML = originalText;
+            button.disabled = false;
+        });
+    });
+
+    // Close modal when clicking outside
+    window.addEventListener('click', function(e) {
+        const modal = document.getElementById('resendModal');
+        if (e.target === modal) {
+            modal.classList.add('hidden');
+        }
+    });
+
+    // Add CSS animations
     const style = document.createElement('style');
     style.textContent = `
         @keyframes shake {
@@ -218,10 +384,34 @@
             25% { transform: translateX(-5px); }
             75% { transform: translateX(5px); }
         }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
         .animate-shake {
             animation: shake 0.5s ease-in-out;
         }
+        .animate-fade-in {
+            animation: fadeIn 0.5s ease-out;
+        }
+        .animate-fade-in-up {
+            animation: fadeIn 0.6s ease-out;
+        }
+        .gradient-text {
+            background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
     `;
     document.head.appendChild(style);
+
+    // Auto-focus on email field
+    document.addEventListener('DOMContentLoaded', function() {
+        const emailField = document.getElementById('id_username');
+        if (emailField && !emailField.value) {
+            emailField.focus();
+        }
+    });
 </script>
 {% endblock %}

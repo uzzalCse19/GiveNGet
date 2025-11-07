@@ -4,22 +4,6 @@
 
 {% block extra_css %}
 <style>
-    .role-card {
-        transition: all 0.3s ease;
-        border: 2px solid #e5e7eb;
-        cursor: pointer;
-    }
-    
-    .role-card:hover {
-        transform: translateY(-2px);
-        border-color: #3b82f6;
-    }
-    
-    .role-card.selected {
-        border-color: #3b82f6;
-        background-color: #eff6ff;
-    }
-    
     .password-strength {
         height: 3px;
         transition: all 0.3s ease;
@@ -37,6 +21,49 @@
     
     .form-input:focus {
         box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    }
+
+    .activation-notice {
+        background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+        border: 2px solid #0ea5e9;
+        border-radius: 0.75rem;
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .loading-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.7);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 9999;
+        opacity: 0;
+        visibility: hidden;
+        transition: all 0.3s ease;
+    }
+    
+    .loading-overlay.active {
+        opacity: 1;
+        visibility: visible;
+    }
+    
+    .loading-spinner {
+        width: 60px;
+        height: 60px;
+        border: 4px solid rgba(255, 255, 255, 0.3);
+        border-top: 4px solid #3b82f6;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+    }
+    
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
     }
 </style>
 {% endblock %}
@@ -57,10 +84,61 @@
             <!-- Card Header -->
             <div class="bg-gradient-to-r from-blue-600 to-purple-700 px-6 py-6">
                 <h2 class="text-xl font-bold text-white text-center">Create Account</h2>
+                <p class="text-blue-100 text-center mt-1 text-sm">Start sharing and receiving today</p>
             </div>
 
             <!-- Card Body -->
             <div class="px-6 py-6">
+                <!-- Success Messages -->
+                {% if messages %}
+                <div class="space-y-2 mb-4">
+                    {% for message in messages %}
+                        {% if message.tags == 'success' %}
+                        <div class="bg-green-50 border border-green-200 rounded-lg p-4 animate-fade-in">
+                            <div class="flex items-center">
+                                <div class="flex-shrink-0">
+                                    <i class="fas fa-check-circle text-green-400"></i>
+                                </div>
+                                <div class="ml-3">
+                                    <p class="text-sm text-green-700">
+                                        {{ message }}
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                        {% elif message.tags == 'error' %}
+                        <div class="bg-red-50 border border-red-200 rounded-lg p-4 animate-shake">
+                            <div class="flex items-center">
+                                <div class="flex-shrink-0">
+                                    <i class="fas fa-exclamation-circle text-red-400"></i>
+                                </div>
+                                <div class="ml-3">
+                                    <p class="text-sm text-red-700">
+                                        {{ message }}
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                        {% endif %}
+                    {% endfor %}
+                </div>
+                {% endif %}
+
+                <!-- Email Activation Notice -->
+                <div class="activation-notice mb-4">
+                    <div class="flex items-start">
+                        <div class="flex-shrink-0">
+                            <i class="fas fa-envelope text-blue-500 text-lg mt-1"></i>
+                        </div>
+                        <div class="ml-3">
+                            <h4 class="text-sm font-semibold text-blue-800">Email Verification Required</h4>
+                            <p class="text-sm text-blue-700 mt-1">
+                                After registration, you'll receive an activation link via email. You must activate your account before logging in.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
                 <form method="post" enctype="multipart/form-data" class="space-y-4" id="registration-form">
                     {% csrf_token %}
                     
@@ -95,60 +173,25 @@
                         </div>
                     </div>
 
-                    <!-- Phone & Role -->
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                            <label for="{{ form.phone.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
-                                Phone
-                            </label>
+                    <!-- Phone -->
+                    <div>
+                        <label for="{{ form.phone.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+                            Phone Number
+                        </label>
+                        <div class="relative">
                             {{ form.phone }}
-                            {% if form.phone.errors %}
-                            <div class="mt-1 text-xs text-red-600">
-                                {% for error in form.phone.errors %}
-                                {{ error }}
-                                {% endfor %}
+                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <span class="text-gray-500 text-sm">+88</span>
                             </div>
-                            {% endif %}
                         </div>
-
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">
-                                I want to: *
-                            </label>
-                            <div class="flex space-x-2" id="role-selection">
-                                <div class="role-card flex-1 p-2 rounded text-center text-xs" data-role="receiver">
-                                    <div class="w-6 h-6 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-1">
-                                        <i class="fas fa-gift text-green-600 text-xs"></i>
-                                    </div>
-                                    <span class="font-medium">Receiver</span>
-                                </div>
-
-                                <div class="role-card flex-1 p-2 rounded text-center text-xs" data-role="exchanger">
-                                    <div class="w-6 h-6 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-1">
-                                        <i class="fas fa-exchange-alt text-purple-600 text-xs"></i>
-                                    </div>
-                                    <span class="font-medium">Exchanger</span>
-                                </div>
-
-                                <div class="role-card flex-1 p-2 rounded text-center text-xs" data-role="donor">
-                                    <div class="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-1">
-                                        <i class="fas fa-hands-helping text-blue-600 text-xs"></i>
-                                    </div>
-                                    <span class="font-medium">Donor</span>
-                                </div>
-                            </div>
-                            
-                            <!-- Hidden role input -->
-                            {{ form.role }}
-                            
-                            {% if form.role.errors %}
-                            <div class="mt-1 text-xs text-red-600">
-                                {% for error in form.role.errors %}
-                                {{ error }}
-                                {% endfor %}
-                            </div>
-                            {% endif %}
+                        <p class="mt-1 text-xs text-gray-500">Bangladeshi format: 01XXXXXXXXX</p>
+                        {% if form.phone.errors %}
+                        <div class="mt-1 text-xs text-red-600">
+                            {% for error in form.phone.errors %}
+                            {{ error }}
+                            {% endfor %}
                         </div>
+                        {% endif %}
                     </div>
 
                     <!-- Address -->
@@ -160,7 +203,7 @@
                         {% if form.address.errors %}
                         <div class="mt-1 text-xs text-red-600">
                             {% for error in form.address.errors %}
-                            {{ error }}
+                                {{ error }}
                             {% endfor %}
                         </div>
                         {% endif %}
@@ -172,13 +215,15 @@
                             Profile Photo
                         </label>
                         <div class="flex items-center space-x-3">
-                            {{ form.profile_photo }}
+                            <div class="flex-1">
+                                {{ form.profile_photo }}
+                            </div>
                             <span class="text-xs text-gray-500">Optional</span>
                         </div>
                         {% if form.profile_photo.errors %}
                         <div class="mt-1 text-xs text-red-600">
                             {% for error in form.profile_photo.errors %}
-                            {{ error }}
+                                {{ error }}
                             {% endfor %}
                         </div>
                         {% endif %}
@@ -206,7 +251,7 @@
                             {% if form.password1.errors %}
                             <div class="mt-1 text-xs text-red-600">
                                 {% for error in form.password1.errors %}
-                                {{ error }}
+                                    {{ error }}
                                 {% endfor %}
                             </div>
                             {% endif %}
@@ -231,10 +276,45 @@
                             {% if form.password2.errors %}
                             <div class="mt-1 text-xs text-red-600">
                                 {% for error in form.password2.errors %}
-                                {{ error }}
+                                    {{ error }}
                                 {% endfor %}
                             </div>
                             {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Terms Agreement -->
+                    <div class="flex items-start space-x-2">
+                        <input type="checkbox" id="terms-agreement" name="terms-agreement" class="mt-1 text-blue-600 focus:ring-blue-500 border-gray-300 rounded" required>
+                        <label for="terms-agreement" class="text-sm text-gray-600">
+                            I agree to the 
+                            <a href="#" class="text-blue-600 hover:text-blue-500">Terms of Service</a> 
+                            and 
+                            <a href="#" class="text-blue-600 hover:text-blue-500">Privacy Policy</a>.
+                            I understand that I need to verify my email before I can login.
+                        </label>
+                    </div>
+
+                    <!-- Features Section -->
+                    <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mt-4">
+                        <h3 class="text-sm font-semibold text-blue-800 mb-2">What you can do:</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-2 text-xs text-blue-700">
+                            <div class="flex items-center">
+                                <i class="fas fa-gift text-blue-500 mr-2"></i>
+                                <span>Donate items</span>
+                            </div>
+                            <div class="flex items-center">
+                                <i class="fas fa-exchange-alt text-blue-500 mr-2"></i>
+                                <span>Exchange items</span>
+                            </div>
+                            <div class="flex items-center">
+                                <i class="fas fa-hands-helping text-blue-500 mr-2"></i>
+                                <span>Receive items</span>
+                            </div>
+                            <div class="flex items-center">
+                                <i class="fas fa-trophy text-blue-500 mr-2"></i>
+                                <span>Earn donor badges</span>
+                            </div>
                         </div>
                     </div>
 
@@ -268,34 +348,15 @@
         </div>
     </div>
 </div>
+
+<!-- Loading Overlay -->
+<div class="loading-overlay" id="loadingOverlay">
+    <div class="loading-spinner"></div>
+</div>
 {% endblock %}
 
 {% block extra_js %}
 <script>
-    // Role Selection
-    document.addEventListener('DOMContentLoaded', function() {
-        const roleCards = document.querySelectorAll('.role-card');
-        const roleInput = document.getElementById('{{ form.role.id_for_label }}');
-        
-        roleCards.forEach(card => {
-            card.addEventListener('click', function() {
-                roleCards.forEach(c => c.classList.remove('selected'));
-                this.classList.add('selected');
-                roleInput.value = this.dataset.role;
-            });
-        });
-        
-        // Set initial selection
-        if (roleInput.value) {
-            const initialCard = document.querySelector(`[data-role="${roleInput.value}"]`);
-            if (initialCard) initialCard.classList.add('selected');
-        } else {
-            // Default selection
-            roleCards[1].classList.add('selected'); // Exchanger
-            roleInput.value = 'exchanger';
-        }
-    });
-
     // Password visibility toggle
     function togglePassword(fieldId) {
         const passwordInput = document.getElementById(fieldId);
@@ -389,9 +450,59 @@
 
     // Form submission handler
     document.getElementById('registration-form').addEventListener('submit', function(e) {
+        const termsAgreement = document.getElementById('terms-agreement');
+        if (!termsAgreement.checked) {
+            e.preventDefault();
+            alert('Please agree to the Terms of Service and Privacy Policy.');
+            return;
+        }
+
         const submitBtn = document.getElementById('submit-btn');
-        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Creating...';
+        const loadingOverlay = document.getElementById('loadingOverlay');
+        
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Creating Account...';
         submitBtn.disabled = true;
+        loadingOverlay.classList.add('active');
+    });
+
+    // Add input focus styles
+    document.addEventListener('DOMContentLoaded', function() {
+        const inputs = document.querySelectorAll('input, textarea, select');
+        inputs.forEach(input => {
+            input.addEventListener('focus', function() {
+                this.classList.add('ring-2', 'ring-blue-500', 'ring-opacity-50');
+            });
+            input.addEventListener('blur', function() {
+                this.classList.remove('ring-2', 'ring-blue-500', 'ring-opacity-50');
+            });
+        });
+
+        // Auto-focus on name field
+        const nameField = document.getElementById('{{ form.name.id_for_label }}');
+        if (nameField) {
+            nameField.focus();
+        }
+
+        // Add CSS animations
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes shake {
+                0%, 100% { transform: translateX(0); }
+                25% { transform: translateX(-5px); }
+                75% { transform: translateX(5px); }
+            }
+            @keyframes fadeIn {
+                from { opacity: 0; transform: translateY(10px); }
+                to { opacity: 1; transform: translateY(0); }
+            }
+            .animate-shake {
+                animation: shake 0.5s ease-in-out;
+            }
+            .animate-fade-in {
+                animation: fadeIn 0.5s ease-out;
+            }
+        `;
+        document.head.appendChild(style);
     });
 </script>
 {% endblock %}

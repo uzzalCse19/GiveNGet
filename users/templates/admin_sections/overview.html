@@ -1,0 +1,100 @@
+<!-- Overview content from previous admin dashboard -->
+<div class="mb-8">
+    <h1 class="text-3xl font-bold text-gray-800">Admin Dashboard</h1>
+    <p class="text-gray-600 mt-2">Platform Overview & Management</p>
+</div>
+
+<!-- Quick Stats -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+    <!-- Total Users -->
+    <div class="admin-stat-card border-l-blue-500">
+        <div class="flex items-center justify-between">
+            <div>
+                <p class="text-sm font-medium text-gray-600">Total Users</p>
+                <p class="stat-number">{{ total_users }}</p>
+            </div>
+            <div class="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
+                <i class="fas fa-users text-blue-600 text-xl"></i>
+            </div>
+        </div>
+        <p class="text-xs text-gray-500 mt-2">
+            {{ active_users }} active • {{ new_users_today }} new today
+        </p>
+    </div>
+
+    <!-- Total Posts -->
+    <div class="admin-stat-card border-l-green-500">
+        <div class="flex items-center justify-between">
+            <div>
+                <p class="text-sm font-medium text-gray-600">Total Posts</p>
+                <p class="stat-number">{{ total_posts }}</p>
+            </div>
+            <div class="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center">
+                <i class="fas fa-gift text-green-600 text-xl"></i>
+            </div>
+        </div>
+        <p class="text-xs text-gray-500 mt-2">
+            {{ available_posts }} available • {{ completed_posts }} completed
+        </p>
+    </div>
+
+    <!-- Total Requests -->
+    <div class="admin-stat-card border-l-orange-500">
+        <div class="flex items-center justify-between">
+            <div>
+                <p class="text-sm font-medium text-gray-600">Total Requests</p>
+                <p class="stat-number">{{ total_requests }}</p>
+            </div>
+            <div class="w-12 h-12 bg-orange-100 rounded-full flex items-center justify-center">
+                <i class="fas fa-exchange-alt text-orange-600 text-xl"></i>
+            </div>
+        </div>
+        <p class="text-xs text-gray-500 mt-2">
+            {{ pending_requests }} pending • {{ approved_requests }} approved
+        </p>
+    </div>
+
+    <!-- System Health -->
+    <div class="admin-stat-card border-l-purple-500">
+        <div class="flex items-center justify-between">
+            <div>
+                <p class="text-sm font-medium text-gray-600">System Health</p>
+                <p class="stat-number">{{ active_categories }}</p>
+            </div>
+            <div class="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center">
+                <i class="fas fa-heartbeat text-purple-600 text-xl"></i>
+            </div>
+        </div>
+        <p class="text-xs text-gray-500 mt-2">
+            {{ inactive_categories }} inactive categories
+        </p>
+    </div>
+</div>
+
+<!-- Charts Section -->
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+    <div class="chart-container bg-white rounded-xl p-6 shadow-sm">
+        <h3 class="text-lg font-semibold text-gray-800 mb-4">User Status Distribution</h3>
+        <div class="h-64">
+            <canvas id="userStatusChart"></canvas>
+        </div>
+    </div>
+    
+    <div class="chart-container bg-white rounded-xl p-6 shadow-sm">
+        <h3 class="text-lg font-semibold text-gray-800 mb-4">Top Categories</h3>
+        <div class="space-y-3">
+            {% for category in category_stats|slice:":5" %}
+            <div class="flex items-center justify-between">
+                <span class="text-sm font-medium text-gray-700">{{ category.name }}</span>
+                <div class="flex items-center gap-2">
+                    <span class="text-xs text-gray-500">{{ category.post_count }} posts</span>
+                    <div class="w-20 bg-gray-200 rounded-full h-2">
+                        <div class="bg-blue-600 h-2 rounded-full" 
+                             style="width: {% widthratio category.post_count total_posts 100 %}%"></div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>

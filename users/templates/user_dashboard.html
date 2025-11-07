@@ -1,0 +1,955 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Dashboard - Upohar{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Dashboard Layout */
+    .dashboard-container {
+        display: flex;
+        min-height: calc(100vh - 80px);
+        background-color: #f8f9fa;
+    }
+    
+    /* Vertical Navigation Menu */
+    .dashboard-nav {
+        width: 280px;
+        background: linear-gradient(180deg, #4CAF50 0%, #388E3C 100%);
+        color: white;
+        padding: 0;
+        box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+        position: sticky;
+        top: 0;
+        height: 100vh;
+        overflow-y: auto;
+    }
+    
+    .nav-header {
+        padding: 25px 20px;
+        border-bottom: 1px solid rgba(255,255,255,0.1);
+        text-align: center;
+    }
+    
+    .nav-logo {
+        font-size: 1.8rem;
+        font-weight: 700;
+        margin-bottom: 5px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    .nav-logo i {
+        margin-right: 10px;
+        font-size: 2rem;
+    }
+    
+    .nav-subtitle {
+        font-size: 0.9rem;
+        opacity: 0.8;
+    }
+    
+    .nav-menu {
+        padding: 20px 0;
+    }
+    
+    .nav-section {
+        margin-bottom: 25px;
+    }
+    
+    .nav-title {
+        padding: 0 20px 10px;
+        font-size: 0.85rem;
+        text-transform: uppercase;
+        opacity: 0.7;
+        letter-spacing: 1px;
+    }
+    
+    .nav-item {
+        display: flex;
+        align-items: center;
+        padding: 12px 20px;
+        color: white;
+        text-decoration: none;
+        transition: all 0.3s;
+        border-left: 4px solid transparent;
+        margin-bottom: 2px;
+    }
+    
+    .nav-item:hover {
+        background-color: rgba(255,255,255,0.1);
+        border-left-color: rgba(255,255,255,0.5);
+    }
+    
+    .nav-item.active {
+        background-color: rgba(255,255,255,0.15);
+        border-left-color: white;
+        font-weight: 500;
+    }
+    
+    .nav-item i {
+        margin-right: 15px;
+        font-size: 1.2rem;
+        width: 24px;
+        text-align: center;
+    }
+    
+    .nav-item .badge {
+        margin-left: auto;
+        background: rgba(255,255,255,0.2);
+        color: white;
+        border-radius: 12px;
+        padding: 2px 8px;
+        font-size: 0.75rem;
+    }
+    
+    .user-profile {
+        padding: 20px;
+        border-top: 1px solid rgba(255,255,255,0.1);
+        display: flex;
+        align-items: center;
+    }
+    
+    .profile-img {
+        width: 45px;
+        height: 45px;
+        border-radius: 50%;
+        object-fit: cover;
+        margin-right: 12px;
+        border: 2px solid rgba(255,255,255,0.3);
+    }
+    
+    .profile-info {
+        flex: 1;
+    }
+    
+    .profile-name {
+        font-weight: 500;
+        font-size: 0.95rem;
+    }
+    
+    .profile-role {
+        font-size: 0.8rem;
+        opacity: 0.8;
+    }
+    
+    /* Dashboard Content */
+    .dashboard-content {
+        flex: 1;
+        padding: 30px;
+        overflow-y: auto;
+    }
+    
+    .content-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 30px;
+    }
+    
+    .page-title {
+        font-size: 1.8rem;
+        font-weight: 600;
+        color: #333;
+        margin: 0;
+    }
+    
+    .header-actions {
+        display: flex;
+        gap: 15px;
+    }
+    
+    .btn {
+        display: inline-flex;
+        align-items: center;
+        padding: 10px 20px;
+        border-radius: 6px;
+        font-weight: 500;
+        text-decoration: none;
+        transition: all 0.3s;
+        border: none;
+        cursor: pointer;
+    }
+    
+    .btn i {
+        margin-right: 8px;
+    }
+    
+    .btn-primary {
+        background-color: #4CAF50;
+        color: white;
+    }
+    
+    .btn-primary:hover {
+        background-color: #388E3C;
+    }
+    
+    .btn-outline {
+        background-color: transparent;
+        color: #4CAF50;
+        border: 1px solid #4CAF50;
+    }
+    
+    .btn-outline:hover {
+        background-color: #4CAF50;
+        color: white;
+    }
+    
+    /* Stats Grid */
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+        gap: 20px;
+        margin-bottom: 30px;
+    }
+    
+    .stat-card {
+        background: white;
+        border-radius: 10px;
+        padding: 20px;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        transition: transform 0.3s, box-shadow 0.3s;
+        border-left: 4px solid #4CAF50;
+    }
+    
+    .stat-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 6px 12px rgba(0,0,0,0.1);
+    }
+    
+    .stat-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 15px;
+    }
+    
+    .stat-title {
+        font-size: 0.9rem;
+        color: #666;
+        margin: 0;
+    }
+    
+    .stat-icon {
+        width: 40px;
+        height: 40px;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.2rem;
+        background-color: #e8f5e9;
+        color: #4CAF50;
+    }
+    
+    .stat-value {
+        font-size: 1.8rem;
+        font-weight: 700;
+        margin-bottom: 5px;
+        color: #333;
+    }
+    
+    .stat-change {
+        font-size: 0.8rem;
+        color: #4CAF50;
+        display: flex;
+        align-items: center;
+    }
+    
+    .stat-change.negative {
+        color: #f44336;
+    }
+    
+    /* Content Cards */
+    .content-card {
+        background: white;
+        border-radius: 10px;
+        padding: 25px;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        margin-bottom: 30px;
+    }
+    
+    .card-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+    }
+    
+    .card-title {
+        font-size: 1.3rem;
+        font-weight: 600;
+        color: #333;
+        margin: 0;
+    }
+    
+    .card-actions a {
+        color: #4CAF50;
+        text-decoration: none;
+        font-weight: 500;
+        font-size: 0.9rem;
+    }
+    
+    /* Table Styles */
+    .table-responsive {
+        overflow-x: auto;
+    }
+    
+    .dashboard-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+    
+    .dashboard-table th {
+        background-color: #f5f5f5;
+        padding: 12px 15px;
+        text-align: left;
+        font-weight: 600;
+        color: #333;
+        border-bottom: 1px solid #ddd;
+        font-size: 0.9rem;
+    }
+    
+    .dashboard-table td {
+        padding: 12px 15px;
+        border-bottom: 1px solid #eee;
+        font-size: 0.9rem;
+    }
+    
+    .dashboard-table tr:last-child td {
+        border-bottom: none;
+    }
+    
+    .dashboard-table tr:hover {
+        background-color: #f9f9f9;
+    }
+    
+    /* Status Badges */
+    .status-badge {
+        display: inline-block;
+        padding: 4px 10px;
+        border-radius: 20px;
+        font-size: 0.8rem;
+        font-weight: 500;
+    }
+    
+    .status-available {
+        background-color: #e8f5e9;
+        color: #4CAF50;
+    }
+    
+    .status-pending {
+        background-color: #fff3e0;
+        color: #ff9800;
+    }
+    
+    .status-requested {
+        background-color: #e3f2fd;
+        color: #2196f3;
+    }
+    
+    .status-completed {
+        background-color: #f3e5f5;
+        color: #9c27b0;
+    }
+    
+    .status-rejected {
+        background-color: #ffebee;
+        color: #f44336;
+    }
+    
+    /* Action Buttons */
+    .action-btn {
+        display: inline-flex;
+        align-items: center;
+        padding: 6px 12px;
+        border-radius: 4px;
+        font-size: 0.8rem;
+        text-decoration: none;
+        margin-right: 5px;
+        transition: all 0.3s;
+    }
+    
+    .btn-view {
+        background-color: #e3f2fd;
+        color: #2196f3;
+    }
+    
+    .btn-edit {
+        background-color: #fff3e0;
+        color: #ff9800;
+    }
+    
+    .btn-delete {
+        background-color: #ffebee;
+        color: #f44336;
+    }
+    
+    /* Empty State */
+    .empty-state {
+        text-align: center;
+        padding: 40px 20px;
+        color: #666;
+    }
+    
+    .empty-state i {
+        font-size: 3rem;
+        margin-bottom: 15px;
+        color: #ddd;
+    }
+    
+    .empty-state h3 {
+        margin-bottom: 10px;
+        color: #555;
+    }
+    
+    .empty-state p {
+        margin-bottom: 20px;
+    }
+    
+    /* Responsive Design */
+    @media (max-width: 992px) {
+        .dashboard-container {
+            flex-direction: column;
+        }
+        
+        .dashboard-nav {
+            width: 100%;
+            height: auto;
+            position: relative;
+        }
+        
+        .nav-menu {
+            display: flex;
+            overflow-x: auto;
+            padding: 10px 0;
+        }
+        
+        .nav-section {
+            margin-bottom: 0;
+            margin-right: 20px;
+        }
+        
+        .nav-title {
+            display: none;
+        }
+        
+        .nav-item {
+            border-left: none;
+            border-bottom: 3px solid transparent;
+            white-space: nowrap;
+        }
+        
+        .nav-item.active {
+            border-left: none;
+            border-bottom-color: white;
+        }
+        
+        .user-profile {
+            display: none;
+        }
+    }
+    
+    @media (max-width: 576px) {
+        .dashboard-content {
+            padding: 15px;
+        }
+        
+        .stats-grid {
+            grid-template-columns: 1fr;
+        }
+        
+        .content-header {
+            flex-direction: column;
+            align-items: flex-start;
+        }
+        
+        .header-actions {
+            margin-top: 15px;
+            width: 100%;
+            justify-content: space-between;
+        }
+        
+        .btn {
+            flex: 1;
+            justify-content: center;
+            margin: 0 5px;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="dashboard-container">
+    <!-- Vertical Navigation Menu -->
+    <nav class="dashboard-nav">
+        <div class="nav-header">
+            <div class="nav-logo">
+                <i class="fas fa-hands-helping"></i>
+                Upohar
+            </div>
+            <div class="nav-subtitle">Gift Sharing Platform</div>
+        </div>
+        
+        <div class="nav-menu">
+            <div class="nav-section">
+                <div class="nav-title">Main Navigation</div>
+                <a href="?section=overview" class="nav-item {% if active_section == 'overview' %}active{% endif %}">
+                    <i class="fas fa-tachometer-alt"></i>
+                    Dashboard
+                    {% if pending_requests_received %}
+                    <span class="badge">{{ pending_requests_received }}</span>
+                    {% endif %}
+                </a>
+                <a href="?section=my_posts" class="nav-item {% if active_section == 'my_posts' %}active{% endif %}">
+                    <i class="fas fa-gift"></i>
+                    My Posts
+                    <span class="badge">{{ total_posts }}</span>
+                </a>
+                <a href="?section=my_requests" class="nav-item {% if active_section == 'my_requests' %}active{% endif %}">
+                    <i class="fas fa-paper-plane"></i>
+                   My Sent Requests
+                    <span class="badge">{{ pending_requests_sent }}</span>
+                </a>
+                <a href="?section=received_requests" class="nav-item {% if active_section == 'received_requests' %}active{% endif %}">
+                    <i class="fas fa-inbox"></i>
+                    Received Requests
+                    <span class="badge">{{ pending_requests_received }}</span>
+                </a>
+            </div>
+            
+            <div class="nav-section">
+                <div class="nav-title">Community</div>
+                {% comment %} <a href="{% url 'browse' %}" class="nav-item">
+                    <i class="fas fa-search"></i>
+                    Browse Items
+                </a> {% endcomment %}
+                {% comment %} <a href="{% url 'community' %}" class="nav-item">
+                    <i class="fas fa-users"></i>
+                    Community
+                </a> {% endcomment %}
+                {% comment %} <a href="{% url 'leaderboard' %}" class="nav-item">
+                    <i class="fas fa-trophy"></i>
+                    Leaderboard
+                </a> {% endcomment %}
+            </div>
+            
+            <div class="nav-section">
+                <div class="nav-title">Account</div>
+                <a href="{% url 'create_post' %}" class="nav-item">
+                    <i class="fas fa-plus-circle"></i>
+                    Create Post
+                </a>
+                <a href="{% url 'profile' %}" class="nav-item">
+                    <i class="fas fa-user-edit"></i>
+                    Edit Profile
+                </a>
+                {% comment %} <a href="{% url 'settings' %}" class="nav-item">
+                    <i class="fas fa-cog"></i>
+                    Settings
+                </a> {% endcomment %}
+            </div>
+        </div>
+        
+        <div class="user-profile">
+            {% if user.profile_photo %}
+                <img src="{{ user.profile_photo.url }}" alt="Profile" class="profile-img">
+            {% else %}
+                <img src="{% static 'images/default-avatar.png' %}" alt="Profile" class="profile-img">
+            {% endif %}
+            <div class="profile-info">
+                <div class="profile-name">{{ user.name }}</div>
+                <div class="profile-role">{{ user.badge_level }}</div>
+            </div>
+        </div>
+    </nav>
+    
+    <!-- Main Content Area -->
+    <main class="dashboard-content">
+        {% if messages %}
+            <div class="messages">
+                {% for message in messages %}
+                    <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                        {{ message }}
+                        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+        
+        <div class="content-header">
+            <h1 class="page-title">
+                {% if active_section == 'overview' %}Dashboard Overview
+                {% elif active_section == 'my_posts' %}My Posts
+                {% elif active_section == 'my_requests' %}Sent Requests
+                {% elif active_section == 'received_requests' %}Received Requests
+                {% endif %}
+            </h1>
+            <div class="header-actions">
+                {% if active_section == 'my_posts' %}
+                    <a href="{% url 'create_post' %}" class="btn btn-primary">
+                        <i class="fas fa-plus"></i> New Post
+                    </a>
+                {% endif %}
+                <a href="{% url 'post_list' %}" class="btn btn-outline">
+                    <i class="fas fa-search"></i> Browse Items
+                </a>
+            </div>
+        </div>
+        
+        {% if active_section == 'overview' %}
+            <!-- Overview Section Content -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-header">
+                        <h3 class="stat-title">Total Posts</h3>
+                        <div class="stat-icon">
+                            <i class="fas fa-gift"></i>
+                        </div>
+                    </div>
+                    <div class="stat-value">{{ total_posts }}</div>
+                    <div class="stat-change positive">
+                        <i class="fas fa-arrow-up"></i> {{ available_posts }} available
+                    </div>
+                </div>
+                
+                <div class="stat-card">
+                    <div class="stat-header">
+                        <h3 class="stat-title">Completed</h3>
+                        <div class="stat-icon">
+                            <i class="fas fa-check-circle"></i>
+                        </div>
+                    </div>
+                    <div class="stat-value">{{ completed_posts }}</div>
+                    <div class="stat-change positive">
+                        <i class="fas fa-arrow-up"></i> {{ user.completed_donations }} donations
+                    </div>
+                </div>
+                
+                <div class="stat-card">
+                    <div class="stat-header">
+                        <h3 class="stat-title">Pending Requests</h3>
+                        <div class="stat-icon">
+                            <i class="fas fa-clock"></i>
+                        </div>
+                    </div>
+                    <div class="stat-value">{{ pending_requests_received }}</div>
+                    <div class="stat-change">
+                        Need your attention
+                    </div>
+                </div>
+                
+                <div class="stat-card">
+                    <div class="stat-header">
+                        <h3 class="stat-title">Community Impact</h3>
+                        <div class="stat-icon">
+                            <i class="fas fa-users"></i>
+                        </div>
+                    </div>
+                    <div class="stat-value">{{ total_users }}</div>
+                    <div class="stat-change positive">
+                        Active members
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Recent Activity -->
+            <div class="content-card">
+                <div class="card-header">
+                    <h2 class="card-title">Recent Activity</h2>
+                    <div class="card-actions">
+                        <a href="?section=my_posts">View All</a>
+                    </div>
+                </div>
+                
+                <div class="table-responsive">
+                    <table class="dashboard-table">
+                        <thead>
+                            <tr>
+                                <th>Item</th>
+                                <th>Type</th>
+                                <th>Status</th>
+                                <th>Date</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for post in posts %}
+                            <tr>
+                                <td>{{ post.title }}</td>
+                                <td>
+                                    <span class="status-badge {% if post.type == 'donation' %}status-available{% else %}status-pending{% endif %}">
+                                        {{ post.get_type_display }}
+                                    </span>
+                                </td>
+                                <td>
+                                    <span class="status-badge 
+                                        {% if post.status == 'available' %}status-available
+                                        {% elif post.status == 'requested' %}status-requested
+                                        {% elif post.status == 'completed' %}status-completed
+                                        {% endif %}">
+                                        {{ post.get_status_display }}
+                                    </span>
+                                </td>
+                                <td>{{ post.created_at|date:"M d, Y" }}</td>
+                                <td>
+                                    <a href="{% url 'post_detail' post.id %}" class="action-btn btn-view">
+                                        <i class="fas fa-eye"></i> View
+                                    </a>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="5">
+                                    <div class="empty-state">
+                                        <i class="fas fa-gift"></i>
+                                        <h3>No Posts Yet</h3>
+                                        <p>You haven't created any posts yet</p>
+                                        <a href="{% url 'create_post' %}" class="btn btn-primary">Create Your First Post</a>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            
+        {% elif active_section == 'my_posts' %}
+            <!-- My Posts Section Content -->
+            <div class="content-card">
+                <div class="card-header">
+                    <h2 class="card-title">My Posts</h2>
+                    <div class="card-actions">
+                        <a href="{% url 'create_post' %}">Create New</a>
+                    </div>
+                </div>
+                
+                {% if user_posts %}
+                <div class="table-responsive">
+                    <table class="dashboard-table">
+                        <thead>
+                            <tr>
+                                <th>Title</th>
+                                <th>Type</th>
+                                <th>Category</th>
+                                <th>Status</th>
+                                <th>Date</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for post in user_posts %}
+                            <tr>
+                                <td>{{ post.title }}</td>
+                                <td>
+                                    <span class="status-badge {% if post.type == 'donation' %}status-available{% else %}status-pending{% endif %}">
+                                        {{ post.get_type_display }}
+                                    </span>
+                                </td>
+                                <td>{% if post.category %}{{ post.category.name }}{% else %}Uncategorized{% endif %}</td>
+                                <td>
+                                    <span class="status-badge 
+                                        {% if post.status == 'available' %}status-available
+                                        {% elif post.status == 'requested' %}status-requested
+                                        {% elif post.status == 'completed' %}status-completed
+                                        {% endif %}">
+                                        {{ post.get_status_display }}
+                                    </span>
+                                </td>
+                                <td>{{ post.created_at|date:"M d, Y" }}</td>
+                                <td>
+                                    <a href="{% url 'post_detail' post.id %}" class="action-btn btn-view">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                    {% if post.status == 'available' %}
+                                    {% comment %} <a href="{% url 'edit_post' post.id %}" class="action-btn btn-edit">
+                                        <i class="fas fa-edit"></i>
+                                    </a> {% endcomment %}
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="empty-state">
+                    <i class="fas fa-gift"></i>
+                    <h3>No Posts Yet</h3>
+                    <p>You haven't created any posts yet. Start sharing items with the community!</p>
+                    <a href="{% url 'create_post' %}" class="btn btn-primary">Create Your First Post</a>
+                </div>
+                {% endif %}
+            </div>
+            
+        {% elif active_section == 'my_requests' %}
+            <!-- My Requests Section Content -->
+            <div class="content-card">
+                <div class="card-header">
+                    <h2 class="card-title">My Sent Requests</h2>
+                </div>
+                
+                {% if requests_sent %}
+                <div class="table-responsive">
+                    <table class="dashboard-table">
+                        <thead>
+                            <tr>
+                                <th>Item</th>
+                                <th>Donor</th>
+                                <th>Status</th>
+                                <th>Date</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for request in requests_sent %}
+                            <tr>
+                                <td>{{ request.gift.title }}</td>
+                                <td>{{ request.gift.donor.name }}</td>
+                                <td>
+                                    <span class="status-badge 
+                                        {% if request.status == 'pending' %}status-pending
+                                        {% elif request.status == 'approved' %}status-available
+                                        {% elif request.status == 'rejected' %}status-rejected
+                                        {% elif request.status == 'completed' %}status-completed
+                                        {% endif %}">
+                                        {{ request.get_status_display }}
+                                    </span>
+                                </td>
+                                <td>{{ request.created_at|date:"M d, Y" }}</td>
+                                <td>
+                                    <a href="{% url 'post_detail' request.gift.id %}" class="action-btn btn-view">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="empty-state">
+                    <i class="fas fa-paper-plane"></i>
+                    <h3>No Requests Sent</h3>
+                    <p>You haven't sent any requests yet. Browse available items to make a request!</p>
+                    <a href="{% url 'browse' %}" class="btn btn-primary">Browse Items</a>
+                </div>
+                {% endif %}
+            </div>
+            
+        {% elif active_section == 'received_requests' %}
+            <!-- Received Requests Section Content -->
+            <div class="content-card">
+                <div class="card-header">
+                    <h2 class="card-title">Received Requests</h2>
+                </div>
+                
+                {% if requests_received %}
+                <div class="table-responsive">
+                    <table class="dashboard-table">
+                        <thead>
+                            <tr>
+                                <th>Item</th>
+                                <th>Requester</th>
+                                <th>Status</th>
+                                <th>Date</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for request in requests_received %}
+                            <tr>
+                                <td>{{ request.gift.title }}</td>
+                                <td>{{ request.requester.name }}</td>
+                                <td>
+                                    <span class="status-badge 
+                                        {% if request.status == 'pending' %}status-pending
+                                        {% elif request.status == 'approved' %}status-available
+                                        {% elif request.status == 'rejected' %}status-rejected
+                                        {% elif request.status == 'completed' %}status-completed
+                                        {% endif %}">
+                                        {{ request.get_status_display }}
+                                    </span>
+                                </td>
+                                <td>{{ request.created_at|date:"M d, Y" }}</td>
+                                <td>
+                                    <a href="{% url 'post_detail' request.gift.id %}" class="action-btn btn-view">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                    {% if request.status == 'pending' %}
+                                    <a href="#" class="action-btn btn-edit">
+                                        <i class="fas fa-check"></i>
+                                    </a>
+                                    <a href="#" class="action-btn btn-delete">
+                                        <i class="fas fa-times"></i>
+                                    </a>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="empty-state">
+                    <i class="fas fa-inbox"></i>
+                    <h3>No Requests Received</h3>
+                    <p>You haven't received any requests for your items yet.</p>
+                    <a href="{% url 'create_post' %}" class="btn btn-primary">Create More Posts</a>
+                </div>
+                {% endif %}
+            </div>
+        {% endif %}
+    </main>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Add active class to current section in navigation
+        const navItems = document.querySelectorAll('.nav-item');
+        navItems.forEach(item => {
+            item.addEventListener('click', function() {
+                navItems.forEach(i => i.classList.remove('active'));
+                this.classList.add('active');
+            });
+        });
+        
+        // Auto-dismiss alerts after 5 seconds
+        const alerts = document.querySelectorAll('.alert');
+        alerts.forEach(alert => {
+            setTimeout(() => {
+                alert.style.opacity = '0';
+                setTimeout(() => {
+                    if (alert.parentElement) {
+                        alert.parentElement.removeChild(alert);
+                    }
+                }, 300);
+            }, 5000);
+        });
+        
+        // Add animation to stat cards on scroll
+        const statCards = document.querySelectorAll('.stat-card');
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.style.transform = 'translateY(0)';
+                    entry.target.style.opacity = '1';
+                }
+            });
+        }, { threshold: 0.1 });
+        
+        statCards.forEach(card => {
+            card.style.transform = 'translateY(20px)';
+            card.style.opacity = '0';
+            card.style.transition = 'transform 0.5s, opacity 0.5s';
+            observer.observe(card);
+        });
+    });
+</script>
+{% endblock %}

@@ -47,6 +47,19 @@
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
     }
+    
+    /* Line clamp for descriptions */
+    .line-clamp-2 {
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+    
+    /* Section spacing */
+    .section-spacing {
+        margin-bottom: 4rem;
+    }
 </style>
 {% endblock %}
 
@@ -61,28 +74,32 @@
                     <span class="gradient-text">with Ease</span>
                 </h1>
                 <p class="text-xl text-gray-600 mb-8">
-                    Welcome to <strong>GiveNGet</strong>, a community-driven platform for sharing gifts, 
-                    exchanging items, and spreading kindness. Become a <strong>donor</strong>, receiver, 
-                    or <strong>both</strong> today!
+                    Welcome to <strong>GiveNGet</strong>, a community-driven platform for sharing gifts 
+                    and exchanging items. Anyone can donate, exchange, or receive - no restrictions!
                 </p>
                 <div class="flex flex-col sm:flex-row gap-4">
                     {% if not user.is_authenticated %}
                     <a href="{% url 'register' %}" class="bg-blue-600 hover:bg-blue-700 text-white px-8 py-4 rounded-lg font-semibold text-lg transition duration-300 transform hover:scale-105 text-center">
-                        Get Started
+                        Join Our Community
                     </a>
                     {% endif %}
                     <a href="{% url 'post_list' %}?type=donation" class="border-2 border-blue-600 text-blue-600 hover:bg-blue-600 hover:text-white px-8 py-4 rounded-lg font-semibold text-lg transition duration-300 text-center">
-                        Donate an Item
+                        Browse Donations
                     </a>
                     <a href="{% url 'post_list' %}?type=exchange" class="border-2 border-purple-600 text-purple-600 hover:bg-purple-600 hover:text-white px-8 py-4 rounded-lg font-semibold text-lg transition duration-300 text-center">
-                        Exchange Items
+                        Find Exchanges
                     </a>
                 </div>
             </div>
             <div class="md:w-1/2 animate-fade-in-up" style="animation-delay: 0.2s;">
-                <img src="https://images.unsplash.com/photo-1551833996-2c1d6d1f47a2?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80" 
-                     alt="Community Sharing" 
-                     class="rounded-2xl shadow-2xl w-full">
+                {% comment %} <div class="bg-gradient-to-br from-blue-200 to-purple-200 rounded-2xl shadow-2xl w-full h-64 md:h-96 flex items-center justify-center">
+                    <div class="text-center p-8">
+                        <i class="fas fa-gift text-6xl text-blue-600 mb-4"></i>
+                        <p class="text-xl font-semibold text-gray-700">Share What You Don't Need</p>
+                        <p class="text-gray-600 mt-2">Find What You're Looking For</p>
+                    </div>
+                </div> {% endcomment %}
+                {% comment %} <img src="{% static 'images/logo4.jpg' %}" alt="GiveNGet Hero Image" class="w-full rounded-2xl shadow-2xl"> {% endcomment %}
             </div>
         </div>
     </div>
@@ -101,8 +118,8 @@
                 <p class="text-gray-600">Items Shared</p>
             </div>
             <div class="animate-fade-in-up" style="animation-delay: 0.2s;">
-                <div class="stat-number">{{ completed_transactions }}+</div>
-                <p class="text-gray-600">Successful Exchanges</p>
+                <div class="stat-number">{{ completed_donations|add:completed_exchanges }}+</div>
+                <p class="text-gray-600">Successful Transactions</p>
             </div>
             <div class="animate-fade-in-up" style="animation-delay: 0.3s;">
                 <div class="stat-number">{{ active_categories }}+</div>
@@ -113,21 +130,22 @@
 </section>
 
 <!-- Donation Products Section -->
-<section class="py-16 bg-gray-50">
+<section class="py-16 bg-gray-50 section-spacing">
     <div class="container mx-auto px-4">
         <div class="text-center mb-12">
             <h2 class="text-4xl font-bold text-gray-800 mb-4">Latest Donations</h2>
             <p class="text-xl text-gray-600">Find items generously shared by our community</p>
         </div>
         
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {% for post in donation_posts %}
+        <!-- First Row - Donation Products -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            {% for post in donation_posts|slice:":4" %}
             <div class="bg-white rounded-2xl shadow-lg overflow-hidden card-hover animate-fade-in-up">
                 {% if post.image %}
                 <img src="{{ post.image.url }}" alt="{{ post.title }}" class="w-full h-48 object-cover">
                 {% else %}
                 <div class="w-full h-48 bg-gradient-to-r from-blue-100 to-purple-100 flex items-center justify-center">
-                    <span class="text-gray-500">No Image</span>
+                    <i class="fas fa-gift text-4xl text-gray-400"></i>
                 </div>
                 {% endif %}
                 <div class="p-6">
@@ -138,46 +156,103 @@
                         <span class="text-sm text-gray-500">{{ post.created_at|timesince }} ago</span>
                     </div>
                     <h3 class="text-xl font-semibold text-gray-800 mb-2">{{ post.title }}</h3>
-                    <p class="text-gray-600 mb-4 line-clamp-2">{{ post.description }}</p>
+                    <p class="text-gray-600 mb-4 line-clamp-2">{{ post.description|truncatewords:15 }}</p>
                     <div class="flex items-center justify-between">
-                        <span class="text-sm text-gray-500">By {{ post.donor.name }}</span>
-                        <a href="{% url 'post_detail' post.id %}" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition duration-300">
-                            View Details
+                        <div class="flex items-center">
+                            {% if post.donor.profile_photo %}
+                            <img src="{{ post.donor.profile_photo.url }}" alt="{{ post.donor.name }}" class="w-6 h-6 rounded-full mr-2">
+                            {% else %}
+                            <div class="w-6 h-6 bg-gradient-to-r from-blue-400 to-purple-500 rounded-full flex items-center justify-center text-white text-xs font-semibold mr-2">
+                                {{ post.donor.name|first|upper }}
+                            </div>
+                            {% endif %}
+                            <span class="text-sm text-gray-500">{{ post.donor.name }}</span>
+                        </div>
+                        <a href="{% url 'post_detail' post.id %}" class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded-lg transition duration-300 text-sm">
+                            View
                         </a>
                     </div>
                 </div>
             </div>
             {% empty %}
-            <div class="col-span-3 text-center py-12">
+            <div class="col-span-4 text-center py-12">
                 <p class="text-gray-500 text-lg">No donation items available at the moment.</p>
+                {% if user.is_authenticated %}
+                <a href="{% url 'create_post' %}?type=donation" class="inline-block bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg mt-4">
+                    Be the First to Donate
+                </a>
+                {% endif %}
             </div>
             {% endfor %}
         </div>
         
-        <div class="text-center mt-12">
-            <a href="{% url 'post_list' %}?type=donation" class="inline-block bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-lg font-semibold transition duration-300">
-                View All Donations
+        <!-- Second Row - Donation Products -->
+        {% if donation_posts|length > 4 %}
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            {% for post in donation_posts|slice:"4:8" %}
+            <div class="bg-white rounded-2xl shadow-lg overflow-hidden card-hover animate-fade-in-up">
+                {% if post.image %}
+                <img src="{{ post.image.url }}" alt="{{ post.title }}" class="w-full h-48 object-cover">
+                {% else %}
+                <div class="w-full h-48 bg-gradient-to-r from-blue-100 to-purple-100 flex items-center justify-center">
+                    <i class="fas fa-gift text-4xl text-gray-400"></i>
+                </div>
+                {% endif %}
+                <div class="p-6">
+                    <div class="flex items-center justify-between mb-3">
+                        <span class="bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm font-semibold">
+                            Donation
+                        </span>
+                        <span class="text-sm text-gray-500">{{ post.created_at|timesince }} ago</span>
+                    </div>
+                    <h3 class="text-xl font-semibold text-gray-800 mb-2">{{ post.title }}</h3>
+                    <p class="text-gray-600 mb-4 line-clamp-2">{{ post.description|truncatewords:15 }}</p>
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center">
+                            {% if post.donor.profile_photo %}
+                            <img src="{{ post.donor.profile_photo.url }}" alt="{{ post.donor.name }}" class="w-6 h-6 rounded-full mr-2">
+                            {% else %}
+                            <div class="w-6 h-6 bg-gradient-to-r from-blue-400 to-purple-500 rounded-full flex items-center justify-center text-white text-xs font-semibold mr-2">
+                                {{ post.donor.name|first|upper }}
+                            </div>
+                            {% endif %}
+                            <span class="text-sm text-gray-500">{{ post.donor.name }}</span>
+                        </div>
+                        <a href="{% url 'post_detail' post.id %}" class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded-lg transition duration-300 text-sm">
+                            View
+                        </a>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+        
+        <div class="text-center mt-8">
+            <a href="{% url 'post_list' %}?type=donation" class="inline-block bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-lg font-semibold transition duration-300 transform hover:scale-105">
+                View All Donations ({{ donation_posts.count }})
             </a>
         </div>
     </div>
 </section>
 
 <!-- Exchange Products Section -->
-<section class="py-16 bg-white">
+<section class="py-16 bg-white section-spacing">
     <div class="container mx-auto px-4">
         <div class="text-center mb-12">
             <h2 class="text-4xl font-bold text-gray-800 mb-4">Available for Exchange</h2>
             <p class="text-xl text-gray-600">Trade items and find what you need</p>
         </div>
         
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {% for post in exchange_posts %}
+        <!-- First Row - Exchange Products -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            {% for post in exchange_posts|slice:":4" %}
             <div class="bg-white rounded-2xl shadow-lg overflow-hidden card-hover animate-fade-in-up">
                 {% if post.image %}
                 <img src="{{ post.image.url }}" alt="{{ post.title }}" class="w-full h-48 object-cover">
                 {% else %}
                 <div class="w-full h-48 bg-gradient-to-r from-orange-100 to-pink-100 flex items-center justify-center">
-                    <span class="text-gray-500">No Image</span>
+                    <i class="fas fa-exchange-alt text-4xl text-gray-400"></i>
                 </div>
                 {% endif %}
                 <div class="p-6">
@@ -188,37 +263,102 @@
                         <span class="text-sm text-gray-500">{{ post.created_at|timesince }} ago</span>
                     </div>
                     <h3 class="text-xl font-semibold text-gray-800 mb-2">{{ post.title }}</h3>
-                    <p class="text-gray-600 mb-2 line-clamp-2">{{ post.description }}</p>
-                    <div class="bg-yellow-50 border-l-4 border-yellow-400 p-3 mb-4">
-                        <p class="text-sm text-yellow-800">
-                            <strong>Wants:</strong> {{ post.exchange_item_name }}
+                    <p class="text-gray-600 mb-2 line-clamp-2">{{ post.description|truncatewords:15 }}</p>
+                    {% if post.exchange_item_name %}
+                    <div class="bg-yellow-50 border-l-4 border-yellow-400 p-2 mb-3">
+                        <p class="text-xs text-yellow-800">
+                            <strong>Want:</strong> {{ post.exchange_item_name }}
                         </p>
                     </div>
+                    {% endif %}
                     <div class="flex items-center justify-between">
-                        <span class="text-sm text-gray-500">By {{ post.donor.name }}</span>
-                        <a href="{% url 'post_detail' post.id %}" class="bg-orange-600 hover:bg-orange-700 text-white px-4 py-2 rounded-lg transition duration-300">
-                            Make Offer
+                        <div class="flex items-center">
+                            {% if post.donor.profile_photo %}
+                            <img src="{{ post.donor.profile_photo.url }}" alt="{{ post.donor.name }}" class="w-6 h-6 rounded-full mr-2">
+                            {% else %}
+                            <div class="w-6 h-6 bg-gradient-to-r from-orange-400 to-pink-500 rounded-full flex items-center justify-center text-white text-xs font-semibold mr-2">
+                                {{ post.donor.name|first|upper }}
+                            </div>
+                            {% endif %}
+                            <span class="text-sm text-gray-500">{{ post.donor.name }}</span>
+                        </div>
+                        <a href="{% url 'post_detail' post.id %}" class="bg-orange-600 hover:bg-orange-700 text-white px-3 py-2 rounded-lg transition duration-300 text-sm">
+                            Details
                         </a>
                     </div>
                 </div>
             </div>
             {% empty %}
-            <div class="col-span-3 text-center py-12">
+            <div class="col-span-4 text-center py-12">
                 <p class="text-gray-500 text-lg">No exchange items available at the moment.</p>
+                {% if user.is_authenticated %}
+                <a href="{% url 'create_post' %}?type=exchange" class="inline-block bg-orange-600 hover:bg-orange-700 text-white px-6 py-3 rounded-lg mt-4">
+                    Start an Exchange
+                </a>
+                {% endif %}
             </div>
             {% endfor %}
         </div>
         
-        <div class="text-center mt-12">
-            <a href="{% url 'post_list' %}?type=exchange" class="inline-block bg-orange-600 hover:bg-orange-700 text-white px-8 py-3 rounded-lg font-semibold transition duration-300">
-                View All Exchanges
+        <!-- Second Row - Exchange Products -->
+        {% if exchange_posts|length > 4 %}
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            {% for post in exchange_posts|slice:"4:8" %}
+            <div class="bg-white rounded-2xl shadow-lg overflow-hidden card-hover animate-fade-in-up">
+                {% if post.image %}
+                <img src="{{ post.image.url }}" alt="{{ post.title }}" class="w-full h-48 object-cover">
+                {% else %}
+                <div class="w-full h-48 bg-gradient-to-r from-orange-100 to-pink-100 flex items-center justify-center">
+                    <i class="fas fa-exchange-alt text-4xl text-gray-400"></i>
+                </div>
+                {% endif %}
+                <div class="p-6">
+                    <div class="flex items-center justify-between mb-3">
+                        <span class="bg-orange-100 text-orange-800 px-3 py-1 rounded-full text-sm font-semibold">
+                            Exchange
+                        </span>
+                        <span class="text-sm text-gray-500">{{ post.created_at|timesince }} ago</span>
+                    </div>
+                    <h3 class="text-xl font-semibold text-gray-800 mb-2">{{ post.title }}</h3>
+                    <p class="text-gray-600 mb-2 line-clamp-2">{{ post.description|truncatewords:15 }}</p>
+                    {% if post.exchange_item_name %}
+                    <div class="bg-yellow-50 border-l-4 border-yellow-400 p-2 mb-3">
+                        <p class="text-xs text-yellow-800">
+                            <strong>Want:</strong> {{ post.exchange_item_name }}
+                        </p>
+                    </div>
+                    {% endif %}
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center">
+                            {% if post.donor.profile_photo %}
+                            <img src="{{ post.donor.profile_photo.url }}" alt="{{ post.donor.name }}" class="w-6 h-6 rounded-full mr-2">
+                            {% else %}
+                            <div class="w-6 h-6 bg-gradient-to-r from-orange-400 to-pink-500 rounded-full flex items-center justify-center text-white text-xs font-semibold mr-2">
+                                {{ post.donor.name|first|upper }}
+                            </div>
+                            {% endif %}
+                            <span class="text-sm text-gray-500">{{ post.donor.name }}</span>
+                        </div>
+                        <a href="{% url 'post_detail' post.id %}" class="bg-orange-600 hover:bg-orange-700 text-white px-3 py-2 rounded-lg transition duration-300 text-sm">
+                            Offer
+                        </a>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+        
+        <div class="text-center mt-8">
+            <a href="{% url 'post_list' %}?type=exchange" class="inline-block bg-orange-600 hover:bg-orange-700 text-white px-8 py-3 rounded-lg font-semibold transition duration-300 transform hover:scale-105">
+                View All Exchanges ({{ exchange_posts.count }})
             </a>
         </div>
     </div>
 </section>
 
 <!-- How It Works Section -->
-<section class="py-16 bg-gradient-to-br from-purple-50 to-blue-50">
+<section class="py-16 bg-gradient-to-br from-purple-50 to-blue-50 section-spacing">
     <div class="container mx-auto px-4">
         <div class="text-center mb-12">
             <h2 class="text-4xl font-bold text-gray-800 mb-4">How GiveNGet Works</h2>
@@ -228,58 +368,63 @@
         <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
             <div class="text-center animate-fade-in-up">
                 <div class="bg-white rounded-full w-20 h-20 flex items-center justify-center mx-auto mb-6 shadow-lg">
-                    <span class="text-2xl font-bold text-blue-600">1</span>
+                    <i class="fas fa-user-plus text-2xl text-blue-600"></i>
                 </div>
-                <h3 class="text-xl font-semibold text-gray-800 mb-4">Sign Up & Choose Role</h3>
-                <p class="text-gray-600">Register as Donor, Receiver, or Exchanger based on your needs</p>
+                <h3 class="text-xl font-semibold text-gray-800 mb-4">Create Account</h3>
+                <p class="text-gray-600">Sign up for free and join our community of givers and receivers</p>
             </div>
             
             <div class="text-center animate-fade-in-up" style="animation-delay: 0.2s;">
                 <div class="bg-white rounded-full w-20 h-20 flex items-center justify-center mx-auto mb-6 shadow-lg">
-                    <span class="text-2xl font-bold text-blue-600">2</span>
+                    <i class="fas fa-gift text-2xl text-blue-600"></i>
                 </div>
-                <h3 class="text-xl font-semibold text-gray-800 mb-4">Post or Browse Items</h3>
-                <p class="text-gray-600">Share items you don't need or find items you're looking for</p>
+                <h3 class="text-xl font-semibold text-gray-800 mb-4">Share or Request</h3>
+                <p class="text-gray-600">Post items to donate or exchange, or browse available items</p>
             </div>
             
             <div class="text-center animate-fade-in-up" style="animation-delay: 0.4s;">
                 <div class="bg-white rounded-full w-20 h-20 flex items-center justify-center mx-auto mb-6 shadow-lg">
-                    <span class="text-2xl font-bold text-blue-600">3</span>
+                    <i class="fas fa-handshake text-2xl text-blue-600"></i>
                 </div>
                 <h3 class="text-xl font-semibold text-gray-800 mb-4">Connect & Complete</h3>
-                <p class="text-gray-600">Request items, coordinate pickup, and complete the transaction</p>
+                <p class="text-gray-600">Request items, coordinate pickup, and help others in need</p>
             </div>
         </div>
     </div>
 </section>
 
 <!-- Top Donors Section -->
-<section class="py-16 bg-white">
+<section class="py-16 bg-white section-spacing">
     <div class="container mx-auto px-4">
         <div class="text-center mb-12">
             <h2 class="text-4xl font-bold text-gray-800 mb-4">Our Top Contributors</h2>
-            <p class="text-xl text-gray-600">Recognizing our most active community members</p>
+            <p class="text-xl text-gray-600">Recognizing our most generous community members</p>
         </div>
         
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             {% for donor in top_donors %}
             <div class="bg-gray-50 rounded-2xl p-6 text-center card-hover animate-fade-in-up">
                 {% if donor.profile_photo %}
-                <img src="{{ donor.profile_photo.url }}" alt="{{ donor.name }}" class="w-20 h-20 rounded-full mx-auto mb-4 object-cover">
+                <img src="{{ donor.profile_photo.url }}" alt="{{ donor.name }}" class="w-20 h-20 rounded-full mx-auto mb-4 object-cover border-4 border-white shadow-lg">
                 {% else %}
-                <div class="w-20 h-20 bg-gradient-to-r from-blue-400 to-purple-500 rounded-full mx-auto mb-4 flex items-center justify-center text-white font-semibold">
+                <div class="w-20 h-20 bg-gradient-to-r from-blue-400 to-purple-500 rounded-full mx-auto mb-4 flex items-center justify-center text-white font-semibold text-2xl border-4 border-white shadow-lg">
                     {{ donor.name|first|upper }}
                 </div>
                 {% endif %}
-                <h3 class="text-lg font-semibold text-gray-800">{{ donor.name }}</h3>
-                <div class="text-sm text-gray-600 mb-2">{{ donor.badge_level }}</div>
+                <h3 class="text-lg font-semibold text-gray-800 mb-1">{{ donor.name }}</h3>
+                <div class="text-sm text-blue-600 font-medium mb-2">{{ donor.badge_level }}</div>
                 <div class="text-xs text-gray-500">
-                    {{ donor.completed_transactions }} Completed Transactions
+                    {{ donor.completed_donations }} Donations • {{ donor.completed_exchanges }} Exchanges
                 </div>
             </div>
             {% empty %}
             <div class="col-span-4 text-center py-8">
-                <p class="text-gray-500">No donor data available yet.</p>
+                <p class="text-gray-500">Be the first to become a top contributor!</p>
+                {% if user.is_authenticated %}
+                <a href="{% url 'create_post' %}" class="inline-block bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg mt-4">
+                    Start Contributing
+                </a>
+                {% endif %}
             </div>
             {% endfor %}
         </div>
@@ -289,12 +434,16 @@
 <!-- CTA Section -->
 <section class="py-20 bg-gradient-to-r from-blue-600 to-purple-700 text-white">
     <div class="container mx-auto px-4 text-center">
-        <h2 class="text-4xl font-bold mb-6">Ready to Join Our Community?</h2>
-        <p class="text-xl mb-8 opacity-90">Start sharing, receiving, and making a difference today</p>
+        <h2 class="text-4xl font-bold mb-6">Ready to Make a Difference?</h2>
+        <p class="text-xl mb-8 opacity-90">Join thousands of users sharing and helping each other</p>
         <div class="flex flex-col sm:flex-row gap-4 justify-center">
             {% if not user.is_authenticated %}
             <a href="{% url 'register' %}" class="bg-white text-blue-600 hover:bg-gray-100 px-8 py-4 rounded-lg font-semibold text-lg transition duration-300 transform hover:scale-105">
-                Create Free Account
+                Join Free Today
+            </a>
+            {% else %}
+            <a href="{% url 'create_post' %}" class="bg-white text-blue-600 hover:bg-gray-100 px-8 py-4 rounded-lg font-semibold text-lg transition duration-300 transform hover:scale-105">
+                Share an Item
             </a>
             {% endif %}
             <a href="{% url 'post_list' %}" class="border-2 border-white text-white hover:bg-white hover:text-blue-600 px-8 py-4 rounded-lg font-semibold text-lg transition duration-300">
@@ -333,18 +482,20 @@
         // Stats counter animation
         const statNumbers = document.querySelectorAll('.stat-number');
         statNumbers.forEach(stat => {
-            const target = parseInt(stat.textContent);
+            const text = stat.textContent;
+            const target = parseInt(text.replace('+', ''));
+            
             let current = 0;
-            const increment = target / 50;
+            const increment = target / 30;
             const timer = setInterval(() => {
                 current += increment;
                 if (current >= target) {
-                    stat.textContent = target + '+';
+                    stat.textContent = text;
                     clearInterval(timer);
                 } else {
                     stat.textContent = Math.floor(current) + '+';
                 }
-            }, 50);
+            }, 80);
         });
     });
 </script>

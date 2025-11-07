@@ -158,10 +158,9 @@ class UpoharRequestAdmin(admin.ModelAdmin):
 
     def requester_info(self, obj):
         return format_html(
-            '{}<br><small>{}</small><br><small>{}</small>',
+            '{}<br><small>{}</small>',
             obj.requester.name,
-            obj.requester.email,
-            obj.requester.get_role_display()
+            obj.requester.email
         )
     requester_info.short_description = 'Requester'
 
@@ -211,11 +210,16 @@ class UpoharRequestAdmin(admin.ModelAdmin):
             req.gift.save()
             req.save()
             
-            # Update user stats
-            req.gift.donor.completed_transactions += 1
-            req.gift.donor.save()
-            if req.requester.role in ['receiver', 'exchanger']:
-                req.requester.completed_transactions += 1
+            # Update user stats based on post type
+            if req.gift.type == 'donation':
+                req.gift.donor.completed_donations += 1
+                req.gift.donor.save()
+                req.requester.completed_donations += 1
+                req.requester.save()
+            else:  # exchange
+                req.gift.donor.completed_exchanges += 1
+                req.gift.donor.save()
+                req.requester.completed_exchanges += 1
                 req.requester.save()
                 
         self.message_user(request, f'{queryset.count()} requests marked as completed.')

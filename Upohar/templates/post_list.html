@@ -1,86 +1,291 @@
 {% extends 'base.html' %}
 
+{% block title %}Browse Items - GiveNGet{% endblock %}
+
+{% block extra_css %}
+<style>
+    .filter-card {
+        background: white;
+        border-radius: 1rem;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        transition: all 0.3s ease;
+    }
+    
+    .filter-card:hover {
+        box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+    }
+    
+    .post-card {
+        transition: all 0.3s ease;
+        border: 1px solid #e5e7eb;
+    }
+    
+    .post-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+        border-color: #3b82f6;
+    }
+    
+    .badge-donation {
+        background: linear-gradient(135deg, #10b981, #059669);
+        color: white;
+    }
+    
+    .badge-exchange {
+        background: linear-gradient(135deg, #f59e0b, #d97706);
+        color: white;
+    }
+    
+    .category-tag {
+        background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+        color: white;
+    }
+    
+    .empty-state {
+        background: white;
+        border-radius: 1rem;
+        padding: 3rem 2rem;
+        text-align: center;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+    
+    .search-filter-container {
+        background: white;
+        border-radius: 1rem;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+</style>
+{% endblock %}
+
 {% block content %}
-<div class="row">
-    <div class="col-md-3">
-        <div class="card">
-            <div class="card-header">
-                <h5 class="mb-0">Filters</h5>
-            </div>
-            <div class="card-body">
-                <form method="get">
-                    <div class="mb-3">
-                        <label class="form-label">Category</label>
-                        <select name="category" class="form-select">
-                            <option value="">All Categories</option>
-                            {% for category in categories %}
-                            <option value="{{ category.id }}" {% if request.GET.category == category.id|stringformat:"i" %}selected{% endif %}>
-                                {{ category.name }}
-                            </option>
-                            {% endfor %}
-                        </select>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Type</label>
-                        <select name="type" class="form-select">
-                            <option value="">All Types</option>
-                            <option value="donation" {% if request.GET.type == 'donation' %}selected{% endif %}>Donation</option>
-                            <option value="exchange" {% if request.GET.type == 'exchange' %}selected{% endif %}>Exchange</option>
-                        </select>
-                    </div>
-                    <button type="submit" class="btn btn-primary w-100">Apply Filters</button>
-                </form>
-            </div>
-        </div>
-    </div>
-
-    <div class="col-md-9">
-        <div class="d-flex justify-content-between align-items-center mb-4">
-            <h2>Available Posts</h2>
-            <span class="text-muted">{{ posts.count }} posts found</span>
+<div class="min-h-screen bg-gradient-to-br from-blue-50 to-purple-100 py-8 px-4 sm:px-6 lg:px-8">
+    <div class="max-w-7xl mx-auto">
+        <!-- Header -->
+        <div class="text-center mb-8">
+            <h1 class="text-3xl font-bold text-gray-800">Browse Available Items</h1>
+            <p class="text-gray-600 mt-2">Find items shared by our community members</p>
         </div>
 
-        <div class="row">
-            {% for post in posts %}
-            <div class="col-md-6 col-lg-4 mb-4">
-                <div class="card post-card h-100">
+        <!-- Search and Filter Horizontal Bar -->
+        <div class="search-filter-container p-6 mb-8">
+            <form method="get" class="flex flex-col lg:flex-row gap-4 items-center">
+                <!-- Search Input -->
+                <div class="flex-1 w-full">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">
+                        <i class="fas fa-search mr-2 text-blue-500"></i>
+                        Search Items
+                    </label>
+                    <input type="text" 
+                           name="search" 
+                           value="{{ request.GET.search }}"
+                           placeholder="Search by item name, description, or any keyword..." 
+                           class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition duration-300">
+                </div>
+
+                <!-- Category Filter -->
+                <div class="w-full lg:w-48">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">
+                        <i class="fas fa-tags mr-2 text-blue-500"></i>
+                        Category
+                    </label>
+                    <select name="category" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition duration-300">
+                        <option value="">All Categories</option>
+                        {% for category in categories %}
+                        <option value="{{ category.id }}" {% if request.GET.category == category.id|stringformat:"i" %}selected{% endif %}>
+                            {{ category.name }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <!-- Type Filter -->
+                <div class="w-full lg:w-48">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">
+                        <i class="fas fa-exchange-alt mr-2 text-blue-500"></i>
+                        Item Type
+                    </label>
+                    <select name="type" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition duration-300">
+                        <option value="">All Types</option>
+                        <option value="donation" {% if request.GET.type == 'donation' %}selected{% endif %}>Donation</option>
+                        <option value="exchange" {% if request.GET.type == 'exchange' %}selected{% endif %}>Exchange</option>
+                    </select>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="flex gap-3 w-full lg:w-auto mt-2">
+                    <button type="submit" class="flex-1 bg-gradient-to-r from-blue-600 to-purple-700 text-white py-3 px-6 rounded-lg font-semibold hover:from-blue-700 hover:to-purple-800 transition duration-300 transform hover:scale-105">
+                        <i class="fas fa-filter mr-2"></i>
+                        Apply Filters
+                    </button>
+                    {% if request.GET.search or request.GET.category or request.GET.type %}
+                    <a href="{% url 'post_list' %}" class="bg-gray-500 hover:bg-gray-600 text-white py-3 px-6 rounded-lg font-semibold transition duration-300 flex items-center">
+                        <i class="fas fa-times mr-2"></i>
+                        Clear
+                    </a>
+                    {% endif %}
+                </div>
+            </form>
+
+            <!-- Active Filters Display -->
+            {% if request.GET.search or request.GET.category or request.GET.type %}
+            <div class="mt-4 pt-4 border-t border-gray-200">
+                <h4 class="text-sm font-medium text-gray-700 mb-2">Active Filters:</h4>
+                <div class="flex flex-wrap gap-2">
+                    {% if request.GET.search %}
+                    <span class="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm font-medium">
+                        Search: "{{ request.GET.search }}"
+                    </span>
+                    {% endif %}
+                    {% if request.GET.category %}
+                    {% for category in categories %}
+                        {% if category.id|stringformat:"i" == request.GET.category %}
+                        <span class="bg-purple-100 text-purple-800 px-3 py-1 rounded-full text-sm font-medium">
+                            Category: {{ category.name }}
+                        </span>
+                        {% endif %}
+                    {% endfor %}
+                    {% endif %}
+                    {% if request.GET.type %}
+                    <span class="bg-orange-100 text-orange-800 px-3 py-1 rounded-full text-sm font-medium capitalize">
+                        Type: {{ request.GET.type }}
+                    </span>
+                    {% endif %}
+                </div>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Posts Grid -->
+        <div class="max-w-7xl mx-auto">
+            <!-- Results Header -->
+            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6">
+                <h2 class="text-xl font-bold text-gray-800 mb-2 sm:mb-0">
+                    Available Items
+                    {% if request.GET.search or request.GET.category or request.GET.type %}
+                    <span class="text-lg font-normal text-gray-600">(Filtered Results)</span>
+                    {% endif %}
+                </h2>
+                <div class="flex items-center gap-4">
+                    <span class="text-sm text-gray-600 bg-white px-3 py-1 rounded-full border">
+                        {{ posts.count }} item{{ posts.count|pluralize }} found
+                    </span>
+                </div>
+            </div>
+
+            <!-- Posts Grid - 4 cards per row -->
+            {% if posts %}
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                {% for post in posts %}
+                <div class="post-card bg-white rounded-2xl overflow-hidden">
+                    <!-- Image -->
                     {% if post.image %}
-                    <img src="{{ post.image.url }}" class="card-img-top" alt="{{ post.title }}" style="height: 200px; object-fit: cover;">
+                    <img src="{{ post.image.url }}" alt="{{ post.title }}" 
+                         class="w-full h-48 object-cover transition duration-300 hover:scale-105">
                     {% else %}
-                    <div class="card-img-top bg-light d-flex align-items-center justify-content-center" style="height: 200px;">
-                        <span class="text-muted">No Image</span>
+                    <div class="w-full h-48 bg-gradient-to-br from-blue-100 to-purple-100 flex items-center justify-center">
+                        <i class="fas fa-gift text-gray-400 text-4xl"></i>
                     </div>
                     {% endif %}
-                    <div class="card-body">
-                        <h5 class="card-title">{{ post.title }}</h5>
-                        <span class="badge bg-{% if post.type == 'donation' %}success{% else %}warning{% endif %}">
-                            {{ post.get_type_display }}
-                        </span>
-                        {% if post.category %}
-                        <span class="badge bg-info">{{ post.category.name }}</span>
-                        {% endif %}
-                        <p class="card-text mt-2">{{ post.description|truncatewords:15 }}</p>
+
+                    <!-- Card Body -->
+                    <div class="p-4">
+                        <!-- Badges -->
+                        <div class="flex items-center gap-2 mb-3">
+                            <span class="badge-{{ post.type }} px-2 py-1 rounded-full text-xs font-semibold">
+                                {{ post.get_type_display }}
+                            </span>
+                            {% if post.category %}
+                            <span class="category-tag px-2 py-1 rounded-full text-xs font-semibold">
+                                {{ post.category.name }}
+                            </span>
+                            {% endif %}
+                        </div>
+
+                        <!-- Title -->
+                        <h3 class="font-semibold text-gray-800 text-base mb-2 line-clamp-2">{{ post.title }}</h3>
+
+                        <!-- Description -->
+                        <p class="text-gray-600 text-sm mb-3 line-clamp-2">{{ post.description }}</p>
+
+                        <!-- Exchange Details -->
                         {% if post.type == 'exchange' %}
-                        <p class="card-text"><small><strong>Exchange for:</strong> {{ post.exchange_item_name }}</small></p>
+                        <div class="bg-orange-50 border border-orange-200 rounded-lg p-2 mb-3">
+                            <p class="text-xs text-orange-800 font-medium mb-1">
+                                <i class="fas fa-exchange-alt mr-1"></i>
+                                Looking for:
+                            </p>
+                            <p class="text-xs text-orange-700">{{ post.exchange_item_name }}</p>
+                        </div>
                         {% endif %}
-                        <small class="text-muted">Posted by {{ post.donor.name }} • {{ post.city }}</small>
-                    </div>
-                    <div class="card-footer">
-                        <a href="{% url 'post_detail' post.id %}" class="btn btn-sm btn-primary">View Details</a>
-                        {% if user.is_authenticated and user != post.donor %}
-                        <a href="{% url 'request_post' post.id %}" class="btn btn-sm btn-success">Request</a>
-                        {% endif %}
+
+                        <!-- Meta Information -->
+                        <div class="flex items-center justify-between text-xs text-gray-500 mb-3">
+                            <div class="flex items-center">
+                                {% if post.donor.profile_photo %}
+                                <img src="{{ post.donor.profile_photo.url }}" 
+                                     class="w-5 h-5 rounded-full object-cover mr-2">
+                                {% else %}
+                                <div class="w-5 h-5 bg-gradient-to-r from-blue-400 to-purple-500 rounded-full flex items-center justify-center text-white text-xs font-semibold mr-2">
+                                    {{ post.donor.name|first|upper }}
+                                </div>
+                                {% endif %}
+                                <span class="truncate">{{ post.donor.name }}</span>
+                            </div>
+                            {% if post.city %}
+                            <div class="flex items-center">
+                                <i class="fas fa-map-marker-alt mr-1"></i>
+                                <span>{{ post.city }}</span>
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Action Buttons -->
+                        <div class="flex gap-2">
+                            <a href="{% url 'post_detail' post.id %}" 
+                               class="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-2 px-3 rounded-lg font-medium text-center text-sm transition duration-300">
+                                View Details
+                            </a>
+                            {% if user.is_authenticated and user != post.donor %}
+                            <a href="{% url 'request_post' post.id %}" 
+                               class="bg-green-600 hover:bg-green-700 text-white py-2 px-3 rounded-lg font-medium text-sm transition duration-300">
+                                <i class="fas fa-hand-holding-heart"></i>
+                            </a>
+                            {% endif %}
+                        </div>
                     </div>
                 </div>
+                {% endfor %}
             </div>
-            {% empty %}
-            <div class="col-12">
-                <div class="text-center py-5">
-                    <h4 class="text-muted">No posts found</h4>
-                    <p class="text-muted">Try adjusting your filters or check back later.</p>
-                </div>
+            {% else %}
+            <!-- Empty State -->
+            <div class="empty-state">
+                <i class="fas fa-inbox text-gray-400 text-6xl mb-4"></i>
+                <h3 class="text-xl font-semibold text-gray-700 mb-2">No items found</h3>
+                <p class="text-gray-500 mb-6">
+                    {% if request.GET.search or request.GET.category or request.GET.type %}
+                    Try adjusting your search or filters to see more results.
+                    {% else %}
+                    Check back later for new items from our community.
+                    {% endif %}
+                </p>
+                {% if request.GET.search or request.GET.category or request.GET.type %}
+                <a href="{% url 'post_list' %}" 
+                   class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-medium transition duration-300 inline-flex items-center">
+                    <i class="fas fa-times mr-2"></i>
+                    Clear All Filters
+                </a>
+                {% endif %}
             </div>
-            {% endfor %}
+            {% endif %}
+
+            <!-- Load More (if needed) -->
+            {% if posts.has_next %}
+            <div class="text-center mt-8">
+                <button class="bg-white hover:bg-gray-50 text-gray-700 px-6 py-3 rounded-lg font-medium border border-gray-300 transition duration-300">
+                    Load More Items
+                </button>
+            </div>
+            {% endif %}
         </div>
     </div>
 </div>

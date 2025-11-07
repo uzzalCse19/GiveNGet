@@ -7,476 +7,201 @@
     .form-section {
         background: white;
         border-radius: 1rem;
-        padding: 1.5rem;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+        padding: 2rem;
         margin-bottom: 1.5rem;
-        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-        border: 1px solid #e5e7eb;
-    }
-    
-    .form-section-title {
-        font-size: 1.25rem;
-        font-weight: 600;
-        color: #374151;
-        margin-bottom: 1rem;
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
     }
     
     .exchange-fields {
-        display: none;
-        background: #fefce8;
-        border: 1px solid #fef08a;
-        border-radius: 0.75rem;
-        padding: 1.5rem;
-        margin-top: 1rem;
-    }
-    
-    .post-type-card {
-        border: 2px solid #e5e7eb;
-        border-radius: 0.75rem;
-        padding: 1.5rem;
-        cursor: pointer;
         transition: all 0.3s ease;
-        text-align: center;
+        overflow: hidden;
     }
     
-    .post-type-card:hover {
-        border-color: #3b82f6;
-        transform: translateY(-2px);
+    .hidden-fields {
+        max-height: 0;
+        opacity: 0;
+        margin: 0;
+        padding: 0;
     }
     
-    .post-type-card.selected {
-        border-color: #3b82f6;
-        background-color: #eff6ff;
-    }
-    
-    .image-preview {
-        border: 2px dashed #d1d5db;
-        border-radius: 0.75rem;
-        padding: 2rem;
-        text-align: center;
-        transition: all 0.3s ease;
-        cursor: pointer;
-    }
-    
-    .image-preview:hover {
-        border-color: #3b82f6;
-        background-color: #f8fafc;
-    }
-    
-    .image-preview.has-image {
-        border-style: solid;
-        border-color: #10b981;
-        background-color: #ecfdf5;
-    }
-    
-    .character-count {
-        font-size: 0.875rem;
-        color: #6b7280;
-        text-align: right;
-        margin-top: 0.25rem;
-    }
-    
-    .character-count.warning {
-        color: #f59e0b;
-    }
-    
-    .character-count.error {
-        color: #ef4444;
+    .visible-fields {
+        max-height: 500px;
+        opacity: 1;
+        margin-top: 1.5rem;
+        padding-top: 1.5rem;
+        border-top: 1px solid #e5e7eb;
     }
 </style>
 {% endblock %}
 
 {% block content %}
 <div class="min-h-screen bg-gradient-to-br from-blue-50 to-purple-100 py-8 px-4 sm:px-6 lg:px-8">
-    <div class="max-w-3xl mx-auto">
+    <div class="max-w-2xl mx-auto">
         <!-- Header -->
         <div class="text-center mb-8">
             <h1 class="text-3xl font-bold text-gray-800">Create New Post</h1>
-            <p class="text-gray-600 mt-2">Share items with the GiveNGet community</p>
+            <p class="text-gray-600 mt-2">Share your item with the community</p>
         </div>
 
-        <!-- Post Creation Card -->
-        <div class="bg-white rounded-2xl shadow-xl overflow-hidden">
-            <!-- Card Header -->
-            <div class="bg-gradient-to-r from-blue-600 to-purple-700 px-6 py-6">
-                <h2 class="text-xl font-bold text-white">Post Details</h2>
-                <p class="text-blue-100 text-sm mt-1">Fill in the information about your item</p>
+        <form method="post" enctype="multipart/form-data" class="space-y-6">
+            {% csrf_token %}
+            
+            <!-- Post Type Selection -->
+            <div class="form-section">
+                <h3 class="text-lg font-semibold text-gray-800 mb-4">Post Type</h3>
+                <div class="space-y-4">
+                    {{ form.type }}
+                    {% if form.type.errors %}
+                    <div class="text-red-600 text-sm">{{ form.type.errors }}</div>
+                    {% endif %}
+                </div>
             </div>
 
-            <!-- Card Body -->
-            <div class="px-6 py-6">
-                <form method="post" enctype="multipart/form-data" class="space-y-6" id="post-form">
-                    {% csrf_token %}
+            <!-- Basic Information -->
+            <div class="form-section">
+                <h3 class="text-lg font-semibold text-gray-800 mb-4">Item Details</h3>
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Category</label>
+                        {{ form.category }}
+                        {% if form.category.errors %}
+                        <div class="text-red-600 text-sm">{{ form.category.errors }}</div>
+                        {% endif %}
+                    </div>
                     
-                    <!-- Post Type Selection -->
-                    <div class="form-section">
-                        <div class="form-section-title">
-                            <i class="fas fa-tag text-blue-500"></i>
-                            Post Type
-                        </div>
-                        
-                        {% if user.role == 'donor' and not user.is_donor_user %}
-                        <!-- Donor (restricted to donation only) -->
-                        <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
-                            <div class="flex items-center">
-                                <i class="fas fa-info-circle text-blue-500 mr-2"></i>
-                                <p class="text-sm text-blue-700">
-                                    As a Donor, you can only create donation posts.
-                                </p>
-                            </div>
-                        </div>
-                        <input type="hidden" name="type" value="donation">
-                        <div class="post-type-card selected">
-                            <div class="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-3">
-                                <i class="fas fa-gift text-green-600 text-xl"></i>
-                            </div>
-                            <h3 class="font-semibold text-gray-800 mb-2">Donation</h3>
-                            <p class="text-sm text-gray-600">Give away items you no longer need</p>
-                        </div>
-                        {% else %}
-                        <!-- Exchanger or Admin (can choose type) -->
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4" id="post-type-selection">
-                            <div class="post-type-card" data-type="donation">
-                                <div class="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-3">
-                                    <i class="fas fa-gift text-green-600 text-xl"></i>
-                                </div>
-                                <h3 class="font-semibold text-gray-800 mb-2">Donation</h3>
-                                <p class="text-sm text-gray-600">Give away items you no longer need</p>
-                                <div class="mt-2 text-xs text-green-600">
-                                    <i class="fas fa-check-circle"></i>
-                                    Help others in need
-                                </div>
-                            </div>
-
-                            <div class="post-type-card" data-type="exchange">
-                                <div class="w-12 h-12 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-3">
-                                    <i class="fas fa-exchange-alt text-orange-600 text-xl"></i>
-                                </div>
-                                <h3 class="font-semibold text-gray-800 mb-2">Exchange</h3>
-                                <p class="text-sm text-gray-600">Trade items with others</p>
-                                <div class="mt-2 text-xs text-orange-600">
-                                    <i class="fas fa-check-circle"></i>
-                                    Get something in return
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <!-- Hidden type input -->
-                        {{ form.type }}
-                        {% endif %}
-                        
-                        {% if form.type.errors %}
-                        <div class="mt-2 text-sm text-red-600">
-                            {% for error in form.type.errors %}
-                            <i class="fas fa-exclamation-circle mr-1"></i>{{ error }}
-                            {% endfor %}
-                        </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Title</label>
+                        {{ form.title }}
+                        {% if form.title.errors %}
+                        <div class="text-red-600 text-sm">{{ form.title.errors }}</div>
                         {% endif %}
                     </div>
-
-                    <!-- Basic Information -->
-                    <div class="form-section">
-                        <div class="form-section-title">
-                            <i class="fas fa-info-circle text-blue-500"></i>
-                            Basic Information
-                        </div>
-                        
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <!-- Category -->
-                            <div>
-                                <label for="{{ form.category.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
-                                    Category *
-                                </label>
-                                {{ form.category }}
-                                {% if form.category.errors %}
-                                <div class="mt-1 text-sm text-red-600">
-                                    {% for error in form.category.errors %}
-                                    <i class="fas fa-exclamation-circle mr-1"></i>{{ error }}
-                                    {% endfor %}
-                                </div>
-                                {% endif %}
-                            </div>
-
-                            <!-- City -->
-                            <div>
-                                <label for="{{ form.city.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
-                                    City
-                                </label>
-                                {{ form.city }}
-                                {% if form.city.errors %}
-                                <div class="mt-1 text-sm text-red-600">
-                                    {% for error in form.city.errors %}
-                                    <i class="fas fa-exclamation-circle mr-1"></i>{{ error }}
-                                    {% endfor %}
-                                </div>
-                                {% endif %}
-                            </div>
-                        </div>
-
-                        <!-- Title -->
-                        <div class="mt-4">
-                            <label for="{{ form.title.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
-                                Item Title *
-                            </label>
-                            {{ form.title }}
-                            <div class="character-count" id="title-count">
-                                <span id="title-length">0</span>/200 characters
-                            </div>
-                            {% if form.title.errors %}
-                            <div class="mt-1 text-sm text-red-600">
-                                {% for error in form.title.errors %}
-                                <i class="fas fa-exclamation-circle mr-1"></i>{{ error }}
-                                {% endfor %}
-                            </div>
-                            {% endif %}
-                        </div>
-
-                        <!-- Description -->
-                        <div class="mt-4">
-                            <label for="{{ form.description.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
-                                Description *
-                            </label>
-                            {{ form.description }}
-                            <div class="character-count" id="description-count">
-                                <span id="description-length">0</span>/1000 characters
-                            </div>
-                            {% if form.description.errors %}
-                            <div class="mt-1 text-sm text-red-600">
-                                {% for error in form.description.errors %}
-                                <i class="fas fa-exclamation-circle mr-1"></i>{{ error }}
-                                {% endfor %}
-                            </div>
-                            {% endif %}
-                        </div>
-                    </div>
-
-                    <!-- Exchange Details (Conditional) -->
-                    <div class="exchange-fields" id="exchange-section">
-                        <div class="form-section-title">
-                            <i class="fas fa-exchange-alt text-orange-500"></i>
-                            Exchange Details
-                        </div>
-                        <p class="text-sm text-gray-600 mb-4">
-                            Let others know what you're looking for in exchange
-                        </p>
-                        
-                        <!-- Exchange Item Name -->
-                        <div class="mb-4">
-                            <label for="{{ form.exchange_item_name.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
-                                What are you looking for? *
-                            </label>
-                            {{ form.exchange_item_name }}
-                            <div class="character-count" id="exchange-name-count">
-                                <span id="exchange-name-length">0</span>/200 characters
-                            </div>
-                            {% if form.exchange_item_name.errors %}
-                            <div class="mt-1 text-sm text-red-600">
-                                {% for error in form.exchange_item_name.errors %}
-                                <i class="fas fa-exclamation-circle mr-1"></i>{{ error }}
-                                {% endfor %}
-                            </div>
-                            {% endif %}
-                        </div>
-
-                        <!-- Exchange Item Description -->
-                        <div>
-                            <label for="{{ form.exchange_item_description.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
-                                Exchange Description *
-                            </label>
-                            {{ form.exchange_item_description }}
-                            <div class="character-count" id="exchange-desc-count">
-                                <span id="exchange-desc-length">0</span>/500 characters
-                            </div>
-                            {% if form.exchange_item_description.errors %}
-                            <div class="mt-1 text-sm text-red-600">
-                                {% for error in form.exchange_item_description.errors %}
-                                <i class="fas fa-exclamation-circle mr-1"></i>{{ error }}
-                                {% endfor %}
-                            </div>
-                            {% endif %}
-                        </div>
-                    </div>
-
-                    <!-- Image Upload -->
-                    <div class="form-section">
-                        <div class="form-section-title">
-                            <i class="fas fa-camera text-blue-500"></i>
-                            Item Photo
-                        </div>
-                        
-                        <label for="{{ form.image.id_for_label }}" class="image-preview" id="image-preview">
-                            <div id="preview-content">
-                                <i class="fas fa-cloud-upload-alt text-gray-400 text-3xl mb-2"></i>
-                                <p class="text-sm text-gray-600">Click to upload item photo</p>
-                                <p class="text-xs text-gray-500 mt-1">PNG, JPG, JPEG up to 5MB</p>
-                            </div>
-                            <img id="preview-image" class="hidden w-full h-48 object-cover rounded-lg">
-                        </label>
-                        
-                        {{ form.image }}
-                        
-                        {% if form.image.errors %}
-                        <div class="mt-2 text-sm text-red-600">
-                            {% for error in form.image.errors %}
-                            <i class="fas fa-exclamation-circle mr-1"></i>{{ error }}
-                            {% endfor %}
-                        </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Description</label>
+                        {{ form.description }}
+                        {% if form.description.errors %}
+                        <div class="text-red-600 text-sm">{{ form.description.errors }}</div>
                         {% endif %}
                     </div>
-
-                    <!-- Action Buttons -->
-                    <div class="flex flex-col sm:flex-row gap-3 pt-4">
-                        <button type="submit" id="submit-btn" class="flex-1 bg-gradient-to-r from-blue-600 to-purple-700 text-white py-3 px-4 rounded-lg font-semibold hover:from-blue-700 hover:to-purple-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition duration-300 transform hover:scale-105">
-                            <i class="fas fa-plus mr-2"></i>
-                            Create Post
-                        </button>
-                        <a href="{% url 'dashboard' %}" class="flex-1 border border-gray-300 text-gray-700 py-3 px-4 rounded-lg font-semibold hover:bg-gray-50 text-center transition duration-300">
-                            <i class="fas fa-times mr-2"></i>
-                            Cancel
-                        </a>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">City</label>
+                        {{ form.city }}
+                        {% if form.city.errors %}
+                        <div class="text-red-600 text-sm">{{ form.city.errors }}</div>
+                        {% endif %}
                     </div>
-                </form>
-            </div>
-        </div>
-
-        <!-- Help Text -->
-        <div class="mt-6 bg-blue-50 border border-blue-200 rounded-lg p-4">
-            <div class="flex">
-                <div class="flex-shrink-0">
-                    <i class="fas fa-lightbulb text-blue-400"></i>
-                </div>
-                <div class="ml-3">
-                    <p class="text-sm text-blue-700">
-                        <strong>Tips for a great post:</strong> Use clear photos, write detailed descriptions, 
-                        and be specific about item condition and pickup location.
-                    </p>
                 </div>
             </div>
-        </div>
+
+            <!-- Exchange Fields (Conditional) -->
+            <div id="exchange-fields" class="form-section exchange-fields hidden-fields">
+                <h3 class="text-lg font-semibold text-gray-800 mb-4">Exchange Details</h3>
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Item You Want</label>
+                        {{ form.exchange_item_name }}
+                        {% if form.exchange_item_name.errors %}
+                        <div class="text-red-600 text-sm">{{ form.exchange_item_name.errors }}</div>
+                        {% endif %}
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Description of Desired Item</label>
+                        {{ form.exchange_item_description }}
+                        {% if form.exchange_item_description.errors %}
+                        <div class="text-red-600 text-sm">{{ form.exchange_item_description.errors }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Image Upload -->
+            <div class="form-section">
+                <h3 class="text-lg font-semibold text-gray-800 mb-4">Item Image</h3>
+                <div class="space-y-4">
+                    <div class="image-preview" id="image-preview">
+                        <div id="preview-content">
+                            <i class="fas fa-cloud-upload-alt text-gray-400 text-3xl mb-2"></i>
+                            <p class="text-sm text-gray-600">Click to upload item photo</p>
+                            <p class="text-xs text-gray-500 mt-1">PNG, JPG, JPEG up to 5MB</p>
+                        </div>
+                        <img id="preview-image" class="hidden w-full h-48 object-cover rounded-lg">
+                    </div>
+                    {{ form.image }}
+                    {% if form.image.errors %}
+                    <div class="text-red-600 text-sm">{{ form.image.errors }}</div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Submit Button -->
+            <div class="text-center">
+                <button type="submit" class="bg-gradient-to-r from-blue-600 to-purple-700 text-white py-3 px-8 rounded-lg font-semibold hover:from-blue-700 hover:to-purple-800 transition duration-300 transform hover:scale-105">
+                    Create Post
+                </button>
+            </div>
+        </form>
     </div>
 </div>
 {% endblock %}
 
 {% block extra_js %}
 <script>
-    // Post Type Selection
-    document.addEventListener('DOMContentLoaded', function() {
-        const typeCards = document.querySelectorAll('.post-type-card');
-        const typeInput = document.getElementById('{{ form.type.id_for_label }}');
-        const exchangeSection = document.getElementById('exchange-section');
+function toggleExchangeFields() {
+    const postType = document.getElementById('id_post_type').value;
+    const exchangeFields = document.getElementById('exchange-fields');
+    
+    if (postType === 'exchange') {
+        exchangeFields.classList.remove('hidden-fields');
+        exchangeFields.classList.add('visible-fields');
         
-        typeCards.forEach(card => {
-            card.addEventListener('click', function() {
-                typeCards.forEach(c => c.classList.remove('selected'));
-                this.classList.add('selected');
-                typeInput.value = this.dataset.type;
-                
-                // Show/hide exchange fields
-                if (this.dataset.type === 'exchange') {
-                    exchangeSection.style.display = 'block';
-                    // Make exchange fields required
-                    document.getElementById('{{ form.exchange_item_name.id_for_label }}').required = true;
-                    document.getElementById('{{ form.exchange_item_description.id_for_label }}').required = true;
-                } else {
-                    exchangeSection.style.display = 'none';
-                    // Remove required from exchange fields
-                    document.getElementById('{{ form.exchange_item_name.id_for_label }}').required = false;
-                    document.getElementById('{{ form.exchange_item_description.id_for_label }}').required = false;
-                }
-            });
-        });
+        // Make exchange fields required
+        document.getElementById('id_exchange_item_name').required = true;
+        document.getElementById('id_exchange_item_description').required = true;
+    } else {
+        exchangeFields.classList.remove('visible-fields');
+        exchangeFields.classList.add('hidden-fields');
         
-        // Set initial selection
-        if (typeInput.value) {
-            const initialCard = document.querySelector(`[data-type="${typeInput.value}"]`);
-            if (initialCard) initialCard.classList.add('selected');
-        } else {
-            // Default to donation
-            typeCards[0].classList.add('selected');
-            typeInput.value = 'donation';
-        }
-    });
-
-    // Character Counters
-    function setupCharacterCounter(textareaId, counterId, lengthId, maxLength) {
-        const textarea = document.getElementById(textareaId);
-        const counter = document.getElementById(counterId);
-        const lengthSpan = document.getElementById(lengthId);
-        
-        textarea.addEventListener('input', function() {
-            const length = this.value.length;
-            lengthSpan.textContent = length;
-            
-            if (length > maxLength * 0.9) {
-                counter.classList.add('error');
-                counter.classList.remove('warning');
-            } else if (length > maxLength * 0.7) {
-                counter.classList.add('warning');
-                counter.classList.remove('error');
-            } else {
-                counter.classList.remove('warning', 'error');
-            }
-        });
-        
-        // Initialize
-        lengthSpan.textContent = textarea.value.length;
+        // Remove required attribute
+        document.getElementById('id_exchange_item_name').required = false;
+        document.getElementById('id_exchange_item_description').required = false;
     }
+}
 
-    // Initialize character counters
-    setupCharacterCounter('{{ form.title.id_for_label }}', 'title-count', 'title-length', 200);
-    setupCharacterCounter('{{ form.description.id_for_label }}', 'description-count', 'description-length', 1000);
-    setupCharacterCounter('{{ form.exchange_item_name.id_for_label }}', 'exchange-name-count', 'exchange-name-length', 200);
-    setupCharacterCounter('{{ form.exchange_item_description.id_for_label }}', 'exchange-desc-count', 'exchange-desc-length', 500);
-
-    // Image Preview
-    document.getElementById('{{ form.image.id_for_label }}').addEventListener('change', function(e) {
+// Initialize on page load
+document.addEventListener('DOMContentLoaded', function() {
+    toggleExchangeFields();
+    
+    // Add event listener for type change
+    document.getElementById('id_post_type').addEventListener('change', toggleExchangeFields);
+    
+    // Image preview functionality
+    const imageInput = document.getElementById('{{ form.image.id_for_label }}');
+    const imagePreview = document.getElementById('image-preview');
+    const previewImage = document.getElementById('preview-image');
+    const previewContent = document.getElementById('preview-content');
+    
+    imagePreview.addEventListener('click', function() {
+        imageInput.click();
+    });
+    
+    imageInput.addEventListener('change', function(e) {
         const file = e.target.files[0];
-        const preview = document.getElementById('preview-image');
-        const previewContent = document.getElementById('preview-content');
-        const imagePreview = document.getElementById('image-preview');
-        
         if (file) {
             const reader = new FileReader();
             reader.onload = function(e) {
-                preview.src = e.target.result;
-                preview.classList.remove('hidden');
+                previewImage.src = e.target.result;
+                previewImage.classList.remove('hidden');
                 previewContent.classList.add('hidden');
-                imagePreview.classList.add('has-image');
             }
             reader.readAsDataURL(file);
         } else {
-            preview.classList.add('hidden');
+            previewImage.classList.add('hidden');
             previewContent.classList.remove('hidden');
-            imagePreview.classList.remove('has-image');
         }
     });
-
-    // Trigger file input when preview area is clicked
-    document.getElementById('image-preview').addEventListener('click', function() {
-        document.getElementById('{{ form.image.id_for_label }}').click();
-    });
-
-    // Form submission handler
-    document.getElementById('post-form').addEventListener('submit', function(e) {
-        const submitBtn = document.getElementById('submit-btn');
-        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Creating Post...';
-        submitBtn.disabled = true;
-    });
-
-    // Add styling to form inputs
-    document.addEventListener('DOMContentLoaded', function() {
-        const inputs = document.querySelectorAll('input, textarea, select');
-        inputs.forEach(input => {
-            if (input.type !== 'file' && !input.classList.contains('form-control')) {
-                input.classList.add('w-full', 'px-4', 'py-3', 'border', 'border-gray-300', 'rounded-lg', 'focus:ring-2', 'focus:ring-blue-500', 'focus:border-blue-500', 'transition', 'duration-300');
-            }
-        });
-
-        // Hide the original file input
-        const fileInput = document.getElementById('{{ form.image.id_for_label }}');
-        fileInput.classList.add('hidden');
-    });
+});
 </script>
 {% endblock %}
