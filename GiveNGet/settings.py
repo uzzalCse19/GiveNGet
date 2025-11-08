@@ -28,7 +28,8 @@ SECRET_KEY = "django-insecure-#g4@t2klv)#(t24+jm7s-cr1huf^hjm924!@jx1-2*^&4f3fnq
 
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*']
+CSRF_TRUSTED_ORIGINS=['https://*.onrender.com','http://127.0.0.1:8000']
 
 AUTH_USER_MODEL = 'users.User'
 LOGIN_URL = '/login/'

@@ -17,11 +17,11 @@ def send_activation_email(sender, instance, created, **kwargs):
         uid = urlsafe_base64_encode(force_bytes(instance.pk))
         activation_url = f"{settings.FRONTEND_URL}/activate/{uid}/{token}/"
 
-        subject = "Activate Your Upohar Account"
+        subject = "Activate Your GiveNGet Account"
         message = f"""
 Hello {instance.name},
 
-Welcome to Upohar! Please activate your account by clicking the link below:
+Welcome to GiveNGet! Please activate your account by clicking the link below:
 
 {activation_url}
 
@@ -30,7 +30,7 @@ This link will expire in 24 hours.
 If you didn't create an account, please ignore this email.
 
 Best regards,
-Upohar Team
+GiveNGet Team
         """
 
         try:
