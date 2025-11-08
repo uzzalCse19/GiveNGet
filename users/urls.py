@@ -15,6 +15,7 @@ urlpatterns = [
 
     path('logout/', custom_logout, name='logout'),
 
-    # Add registration view as needed
+    path('forgot-password/', views.forgot_password, name='forgot_password'),
+    path('reset-password/<str:token>/', views.reset_password, name='reset_password'),
     
 ]

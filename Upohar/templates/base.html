@@ -6,97 +6,216 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}GiveNGet - Donate & Exchange with Ease{% endblock %}</title>
     
+    <!-- Meta Tags for SEO & Social -->
+    <meta name="description" content="GiveNGet - A community-driven platform for sharing gifts, exchanging items, and spreading kindness">
+    <meta name="keywords" content="donation, exchange, community, sharing, gifts, sustainability">
+    <meta name="author" content="GiveNGet">
+    
+    <!-- Open Graph -->
+    <meta property="og:title" content="GiveNGet - Donate & Exchange with Ease">
+    <meta property="og:description" content="A community-driven platform for sharing gifts, exchanging items, and spreading kindness">
+    <meta property="og:type" content="website">
+    <meta property="og:image" content="{% static 'images/logo.png' %}">
+    
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary">
+    <meta name="twitter:title" content="GiveNGet - Donate & Exchange with Ease">
+    <meta name="twitter:description" content="A community-driven platform for sharing gifts, exchanging items, and spreading kindness">
+    
+    <!-- Structured Data -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "WebSite",
+        "name": "GiveNGet",
+        "description": "A community-driven platform for sharing gifts, exchanging items, and spreading kindness",
+        "url": "{{ request.build_absolute_uri }}",
+        "potentialAction": {
+            "@type": "SearchAction",
+            "target": "{% url 'post_list' %}?search={search_term_string}",
+            "query-input": "required name=search_term_string"
+        }
+    }
+    </script>
+    
+    <!-- Preload & Preconnect -->
+    <link rel="preconnect" href="https://cdnjs.cloudflare.com">
+    <link rel="preconnect" href="https://cdn.tailwindcss.com">
+    <link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+    <noscript><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"></noscript>
+    
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     
-    <!-- Font Awesome -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <!-- Font Awesome (fallback) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" integrity="sha512-9usAa10IRO0HhonpyAIVpjrylPvoDwiPUiKdWk5t3PyolY1cOd4DSE0Ga+ri4AuTroPR5aQvXU9xC6qOPnzFeg==" crossorigin="anonymous" referrerpolicy="no-referrer">
+    
+    <!-- Favicon -->
+    <link rel="icon" href="{% static 'images/favicon.ico' %}" type="image/x-icon">
+    <link rel="apple-touch-icon" href="{% static 'images/logo.png' %}">
+    
+    <!-- CSRF Token for AJAX -->
+    <meta name="csrf-token" content="{{ csrf_token }}">
     
     {% block extra_css %}{% endblock %}
 </head>
 <body class="bg-gray-50">
+    <!-- Skip to main content - Accessibility -->
+    <a href="#main-content" class="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 bg-blue-600 text-white px-4 py-2 rounded-lg z-50 font-medium transition duration-200">
+        Skip to main content
+    </a>
+
     <!-- Navigation -->
-    <nav class="bg-white shadow-lg sticky top-0 z-50 transition-all duration-300">
+    <nav class="bg-white shadow-lg sticky top-0 z-50 transition-all duration-300" aria-label="Main navigation">
         <div class="max-w-7xl mx-auto px-4">
             <div class="flex justify-between items-center py-4">
                 <!-- Logo -->
                 <div class="flex items-center">
-                    <a href="{% url 'home' %}" class="flex items-center space-x-3">
+                    <a href="{% url 'home' %}" class="flex items-center space-x-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 rounded-lg transition duration-200">
                         <img src="{% static 'images/logo.png' %}" 
                              alt="GiveNGet Logo" 
-                             class="h-24 w-auto object-contain">
-                        <span class="text-3xl font-bold bg-gradient-to-r from-blue-500 to-purple-500 bg-clip-text text-transparent">
-                            GiveNGet
-                        </span>
+                             class="h-32 w-auto object-contain"
+                             loading="lazy"
+                             width="128"
+                             height="32">
                     </a>
                 </div>
 
                 <!-- Desktop Menu -->
                 <div class="hidden md:flex items-center space-x-8">
-                    <a href="{% url 'home' %}" class="text-gray-700 hover:text-blue-600 font-medium transition duration-300">Home</a>
-                    <a href="{% url 'post_list' %}" class="text-gray-700 hover:text-blue-600 font-medium transition duration-300">Browse Items</a>
+                    <a href="{% url 'home' %}" 
+                       class="text-gray-700 hover:text-blue-600 font-medium transition duration-300 focus:outline-none focus:text-blue-600 rounded-lg px-3 py-2">
+                        Home
+                    </a>
+                    <a href="{% url 'post_list' %}" 
+                       class="text-gray-700 hover:text-blue-600 font-medium transition duration-300 focus:outline-none focus:text-blue-600 rounded-lg px-3 py-2">
+                        Browse Items
+                    </a>
                     
                     {% if user.is_authenticated %}
-                        <a href="{% url 'dashboard' %}" class="text-gray-700 hover:text-blue-600 font-medium transition duration-300">Dashboard</a>
-                        <a href="{% url 'create_post' %}" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition duration-300">Create Post</a>
+                        <a href="{% url 'dashboard' %}" 
+                           class="text-gray-700 hover:text-blue-600 font-medium transition duration-300 focus:outline-none focus:text-blue-600 rounded-lg px-3 py-2">
+                            Dashboard
+                        </a>
+                        <a href="{% url 'create_post' %}" 
+                           class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-medium transition duration-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
+                            Create Post
+                        </a>
 
                         <!-- User Dropdown -->
-                        <div class="relative group">
-                            <button class="flex items-center space-x-2 text-gray-700 hover:text-blue-600 font-medium transition duration-300">
+                        <div class="relative group" x-data="{ open: false }">
+                            <button class="flex items-center space-x-2 text-gray-700 hover:text-blue-600 font-medium transition duration-300 focus:outline-none focus:text-blue-600 rounded-lg px-3 py-2"
+                                    @click="open = !open"
+                                    aria-expanded="false"
+                                    aria-haspopup="true"
+                                    :aria-expanded="open.toString()">
                                 {% if user.profile_photo %}
-                                    <img src="{{ user.profile_photo.url }}" class="w-8 h-8 rounded-full object-cover">
-                                {% else %}
-                                    <div class="w-8 h-8 bg-gradient-to-r from-blue-400 to-purple-500 rounded-full flex items-center justify-center text-white text-sm font-semibold">
-                                        {{ user.name|first|upper }}
-                                    </div>
+                                    <img src="{{ user.profile_photo.url }}" 
+                                         alt="{{ user.name }}'s profile photo"
+                                         class="w-8 h-8 rounded-full object-cover"
+                                         onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
                                 {% endif %}
+                                <div class="w-8 h-8 bg-gradient-to-r from-blue-400 to-purple-500 rounded-full flex items-center justify-center text-white text-sm font-semibold {% if user.profile_photo %}hidden{% endif %}">
+                                    {{ user.name|first|upper }}
+                                </div>
                                 <span>{{ user.name }}</span>
-                                <i class="fas fa-chevron-down text-xs"></i>
+                                <i class="fas fa-chevron-down text-xs transition-transform duration-300" :class="{'rotate-180': open}"></i>
                             </button>
 
-                            <div class="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg py-2 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300">
-                                <a href="{% url 'profile' %}" class="block px-4 py-2 text-gray-700 hover:bg-gray-100 transition duration-300">
-                                    <i class="fas fa-user mr-2"></i>My Profile
+                            <div class="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg py-2 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 border border-gray-200"
+                                 x-show="open"
+                                 @click.outside="open = false"
+                                 x-transition:enter="transition ease-out duration-200"
+                                 x-transition:enter-start="opacity-0 transform -translate-y-2"
+                                 x-transition:enter-end="opacity-100 transform translate-y-0"
+                                 x-transition:leave="transition ease-in duration-150"
+                                 x-transition:leave-start="opacity-100 transform translate-y-0"
+                                 x-transition:leave-end="opacity-0 transform -translate-y-2">
+                                <a href="{% url 'profile' %}" 
+                                   class="block px-4 py-2 text-gray-700 hover:bg-gray-50 transition duration-300 focus:outline-none focus:bg-gray-50 rounded mx-2">
+                                    <i class="fas fa-user mr-2 w-4 text-center" aria-hidden="true"></i>My Profile
                                 </a>
-                                <a href="{% url 'manage_requests' %}" class="block px-4 py-2 text-gray-700 hover:bg-gray-100 transition duration-300">
-                                    <i class="fas fa-exchange-alt mr-2"></i>My Requests
+                                <a href="{% url 'manage_requests' %}" 
+                                   class="block px-4 py-2 text-gray-700 hover:bg-gray-50 transition duration-300 focus:outline-none focus:bg-gray-50 rounded mx-2">
+                                    <i class="fas fa-exchange-alt mr-2 w-4 text-center" aria-hidden="true"></i>My Requests
                                 </a>
-                                <a href="{% url 'logout' %}" class="block px-4 py-2 text-red-600 hover:bg-red-50 transition duration-300">
-                                    <i class="fas fa-sign-out-alt mr-2"></i>Logout
+                                <div class="border-t border-gray-100 my-1"></div>
+                                <a href="{% url 'logout' %}" 
+                                   class="block px-4 py-2 text-red-600 hover:bg-red-50 transition duration-300 focus:outline-none focus:bg-red-50 rounded mx-2">
+                                    <i class="fas fa-sign-out-alt mr-2 w-4 text-center" aria-hidden="true"></i>Logout
                                 </a>
                             </div>
                         </div>
                     {% else %}
-                        <a href="{% url 'login' %}" class="text-gray-700 hover:text-blue-600 font-medium transition duration-300">Login</a>
-                        <a href="{% url 'register' %}" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-medium transition duration-300">Sign Up</a>
+                        <a href="{% url 'login' %}" 
+                           class="text-gray-700 hover:text-blue-600 font-medium transition duration-300 focus:outline-none focus:text-blue-600 rounded-lg px-3 py-2">
+                            Login
+                        </a>
+                        <a href="{% url 'register' %}" 
+                           class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-medium transition duration-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
+                            Sign Up
+                        </a>
                     {% endif %}
                 </div>
 
                 <!-- Mobile menu button -->
                 <div class="md:hidden">
-                    <button id="mobile-menu-button" class="text-gray-700 hover:text-blue-600">
-                        <i class="fas fa-bars text-xl"></i>
+                    <button id="mobile-menu-button" 
+                            class="text-gray-700 hover:text-blue-600 p-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition duration-200"
+                            aria-expanded="false"
+                            aria-controls="mobile-menu"
+                            aria-label="Toggle menu">
+                        <i class="fas fa-bars text-xl" aria-hidden="true"></i>
                     </button>
                 </div>
             </div>
 
             <!-- Mobile Menu -->
-            <div id="mobile-menu" class="hidden md:hidden pb-4 border-t">
-                <div class="flex flex-col space-y-4 mt-4">
-                    <a href="{% url 'home' %}" class="text-gray-700 hover:text-blue-600 font-medium">Home</a>
-                    <a href="{% url 'post_list' %}" class="text-gray-700 hover:text-blue-600 font-medium">Browse Items</a>
+            <div id="mobile-menu" 
+                 class="hidden md:hidden pb-4 border-t border-gray-200 transition-all duration-300 ease-in-out"
+                 aria-labelledby="mobile-menu-button">
+                <div class="flex flex-col space-y-3 mt-4">
+                    <a href="{% url 'home' %}" 
+                       class="text-gray-700 hover:text-blue-600 font-medium py-2 px-4 rounded-lg hover:bg-gray-50 transition duration-300 focus:outline-none focus:bg-gray-50">
+                        Home
+                    </a>
+                    <a href="{% url 'post_list' %}" 
+                       class="text-gray-700 hover:text-blue-600 font-medium py-2 px-4 rounded-lg hover:bg-gray-50 transition duration-300 focus:outline-none focus:bg-gray-50">
+                        Browse Items
+                    </a>
 
                     {% if user.is_authenticated %}
-                        <a href="{% url 'dashboard' %}" class="text-gray-700 hover:text-blue-600 font-medium">Dashboard</a>
-                        <a href="{% url 'create_post' %}" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium text-center">Create Post</a>
-                        <a href="{% url 'profile' %}" class="text-gray-700 hover:text-blue-600 font-medium">My Profile</a>
-                        <a href="{% url 'manage_requests' %}" class="text-gray-700 hover:text-blue-600 font-medium">My Requests</a>
-                        <a href="{% url 'logout' %}" class="text-red-600 hover:text-red-700 font-medium">
-                            <i class="fas fa-sign-out-alt mr-2"></i>Logout
+                        <a href="{% url 'dashboard' %}" 
+                           class="text-gray-700 hover:text-blue-600 font-medium py-2 px-4 rounded-lg hover:bg-gray-50 transition duration-300 focus:outline-none focus:bg-gray-50">
+                            Dashboard
+                        </a>
+                        <a href="{% url 'create_post' %}" 
+                           class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-3 rounded-lg font-medium text-center transition duration-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
+                            Create Post
+                        </a>
+                        <div class="border-t border-gray-200 pt-3 mt-2">
+                            <a href="{% url 'profile' %}" 
+                               class="text-gray-700 hover:text-blue-600 font-medium py-2 px-4 rounded-lg hover:bg-gray-50 transition duration-300 focus:outline-none focus:bg-gray-50 flex items-center">
+                                <i class="fas fa-user mr-3 w-4 text-center" aria-hidden="true"></i>My Profile
+                            </a>
+                            <a href="{% url 'manage_requests' %}" 
+                               class="text-gray-700 hover:text-blue-600 font-medium py-2 px-4 rounded-lg hover:bg-gray-50 transition duration-300 focus:outline-none focus:bg-gray-50 flex items-center">
+                                <i class="fas fa-exchange-alt mr-3 w-4 text-center" aria-hidden="true"></i>My Requests
+                            </a>
+                        </div>
+                        <a href="{% url 'logout' %}" 
+                           class="text-red-600 hover:text-red-700 font-medium py-2 px-4 rounded-lg hover:bg-red-50 transition duration-300 focus:outline-none focus:bg-red-50 flex items-center">
+                            <i class="fas fa-sign-out-alt mr-3 w-4 text-center" aria-hidden="true"></i>Logout
                         </a>
                     {% else %}
-                        <a href="{% url 'login' %}" class="text-gray-700 hover:text-blue-600 font-medium">Login</a>
-                        <a href="{% url 'register' %}" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium text-center">Sign Up</a>
+                        <a href="{% url 'login' %}" 
+                           class="text-gray-700 hover:text-blue-600 font-medium py-2 px-4 rounded-lg hover:bg-gray-50 transition duration-300 focus:outline-none focus:bg-gray-50">
+                            Login
+                        </a>
+                        <a href="{% url 'register' %}" 
+                           class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-3 rounded-lg font-medium text-center transition duration-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
+                            Sign Up
+                        </a>
                     {% endif %}
                 </div>
             </div>
@@ -105,12 +224,30 @@
 
     <!-- Messages -->
     {% if messages %}
-    <div class="max-w-7xl mx-auto px-4 mt-4">
+    <div class="max-w-7xl mx-auto px-4 mt-4 space-y-3" aria-live="polite" aria-atomic="true">
         {% for message in messages %}
-        <div class="alert alert-{{ message.tags }} bg-{% if message.tags == 'success' %}green-500{% elif message.tags == 'error' %}red-500{% else %}blue-500{% endif %} text-white p-4 rounded-lg mb-4 transition duration-300">
-            {{ message }}
-            <button type="button" class="float-right text-white hover:text-gray-200" onclick="this.parentElement.remove()">
-                <i class="fas fa-times"></i>
+        <div class="alert alert-{{ message.tags }} 
+                    {% if message.tags == 'success' %}bg-green-500 border-green-600
+                    {% elif message.tags == 'error' %}bg-red-500 border-red-600
+                    {% elif message.tags == 'warning' %}bg-yellow-500 border-yellow-600
+                    {% else %}bg-blue-500 border-blue-600{% endif %} 
+                    border-l-4 text-white p-4 rounded-lg transition duration-300 flex justify-between items-center shadow-lg"
+                    role="alert"
+                    data-auto-dismiss="true">
+            <div class="flex items-center">
+                <i class="fas 
+                    {% if message.tags == 'success' %}fa-check-circle
+                    {% elif message.tags == 'error' %}fa-exclamation-circle
+                    {% elif message.tags == 'warning' %}fa-exclamation-triangle
+                    {% else %}fa-info-circle{% endif %} 
+                    mr-3" aria-hidden="true"></i>
+                <span>{{ message }}</span>
+            </div>
+            <button type="button" 
+                    class="text-white hover:text-gray-200 transition duration-200 ml-4 focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-{% if message.tags == 'success' %}green-500{% elif message.tags == 'error' %}red-500{% elif message.tags == 'warning' %}yellow-500{% else %}blue-500{% endif %} rounded-full p-1"
+                    onclick="dismissMessage(this)"
+                    aria-label="Close message">
+                <i class="fas fa-times" aria-hidden="true"></i>
             </button>
         </div>
         {% endfor %}
@@ -118,298 +255,248 @@
     {% endif %}
 
     <!-- Main Content -->
-    <main>
+    <main id="main-content">
         {% block content %}{% endblock %}
     </main>
 
     <!-- Footer -->
-    <footer class="bg-gray-800 text-white py-12">
+    <footer class="bg-gray-800 text-white py-12" role="contentinfo">
         <div class="max-w-7xl mx-auto px-4">
             <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
                 <div>
-                    <h3 class="text-2xl font-bold mb-4">GiveNGet</h3>
-                    <p class="text-gray-400">A community-driven platform for sharing gifts, exchanging items, and spreading kindness.</p>
+                    <h3 class="text-2xl font-bold mb-4">
+                        <span class="sr-only">GiveNGet</span>
+                        GiveNGet
+                    </h3>
+                    <p class="text-gray-400 leading-relaxed">
+                        A community-driven platform for sharing gifts, exchanging items, and spreading kindness. 
+                        Join us in building a more sustainable and connected community.
+                    </p>
                 </div>
 
                 <div>
                     <h4 class="text-lg font-semibold mb-4">Quick Links</h4>
-                    <ul class="space-y-2">
-                        <li><a href="{% url 'home' %}" class="text-gray-400 hover:text-white transition duration-300">Home</a></li>
-                        <li><a href="{% url 'post_list' %}" class="text-gray-400 hover:text-white transition duration-300">Browse Items</a></li>
-                        <li><a href="{% url 'post_list' %}?type=donation" class="text-gray-400 hover:text-white transition duration-300">Donations</a></li>
-                        <li><a href="{% url 'post_list' %}?type=exchange" class="text-gray-400 hover:text-white transition duration-300">Exchanges</a></li>
+                    <ul class="space-y-3">
+                        <li><a href="{% url 'home' %}" class="text-gray-400 hover:text-white transition duration-300 focus:outline-none focus:text-white rounded-lg px-1 py-1">Home</a></li>
+                        <li><a href="{% url 'post_list' %}" class="text-gray-400 hover:text-white transition duration-300 focus:outline-none focus:text-white rounded-lg px-1 py-1">Browse Items</a></li>
+                        <li><a href="{% url 'post_list' %}?type=donation" class="text-gray-400 hover:text-white transition duration-300 focus:outline-none focus:text-white rounded-lg px-1 py-1">Donations</a></li>
+                        <li><a href="{% url 'post_list' %}?type=exchange" class="text-gray-400 hover:text-white transition duration-300 focus:outline-none focus:text-white rounded-lg px-1 py-1">Exchanges</a></li>
                     </ul>
                 </div>
 
                 <div>
                     <h4 class="text-lg font-semibold mb-4">Account</h4>
-                    <ul class="space-y-2">
+                    <ul class="space-y-3">
                         {% if user.is_authenticated %}
-                        <li><a href="{% url 'dashboard' %}" class="text-gray-400 hover:text-white transition duration-300">Dashboard</a></li>
-                        <li><a href="{% url 'profile' %}" class="text-gray-400 hover:text-white transition duration-300">My Profile</a></li>
-                        <li><a href="{% url 'manage_requests' %}" class="text-gray-400 hover:text-white transition duration-300">My Requests</a></li>
+                        <li><a href="{% url 'dashboard' %}" class="text-gray-400 hover:text-white transition duration-300 focus:outline-none focus:text-white rounded-lg px-1 py-1">Dashboard</a></li>
+                        <li><a href="{% url 'profile' %}" class="text-gray-400 hover:text-white transition duration-300 focus:outline-none focus:text-white rounded-lg px-1 py-1">My Profile</a></li>
+                        <li><a href="{% url 'manage_requests' %}" class="text-gray-400 hover:text-white transition duration-300 focus:outline-none focus:text-white rounded-lg px-1 py-1">My Requests</a></li>
                         {% else %}
-                        <li><a href="{% url 'login' %}" class="text-gray-400 hover:text-white transition duration-300">Login</a></li>
-                        <li><a href="{% url 'register' %}" class="text-gray-400 hover:text-white transition duration-300">Register</a></li>
+                        <li><a href="{% url 'login' %}" class="text-gray-400 hover:text-white transition duration-300 focus:outline-none focus:text-white rounded-lg px-1 py-1">Login</a></li>
+                        <li><a href="{% url 'register' %}" class="text-gray-400 hover:text-white transition duration-300 focus:outline-none focus:text-white rounded-lg px-1 py-1">Register</a></li>
                         {% endif %}
                     </ul>
                 </div>
 
                 <div>
-                    <h4 class="text-lg font-semibold mb-4">Connect</h4>
-                    <div class="flex space-x-4">
-                        <a href="#" class="text-gray-400 hover:text-white transition duration-300"><i class="fab fa-facebook text-xl"></i></a>
-                        <a href="#" class="text-gray-400 hover:text-white transition duration-300"><i class="fab fa-twitter text-xl"></i></a>
-                        <a href="#" class="text-gray-400 hover:text-white transition duration-300"><i class="fab fa-instagram text-xl"></i></a>
+                    <h4 class="text-lg font-semibold mb-4">Connect With Us</h4>
+                    <div class="flex space-x-4 mb-4">
+                        <a href="#" class="text-gray-400 hover:text-white transition duration-300 focus:outline-none focus:text-white rounded-lg p-2 bg-gray-700 hover:bg-gray-600" aria-label="Facebook">
+                            <i class="fab fa-facebook text-xl" aria-hidden="true"></i>
+                        </a>
+                        <a href="#" class="text-gray-400 hover:text-white transition duration-300 focus:outline-none focus:text-white rounded-lg p-2 bg-gray-700 hover:bg-gray-600" aria-label="Twitter">
+                            <i class="fab fa-twitter text-xl" aria-hidden="true"></i>
+                        </a>
+                        <a href="#" class="text-gray-400 hover:text-white transition duration-300 focus:outline-none focus:text-white rounded-lg p-2 bg-gray-700 hover:bg-gray-600" aria-label="Instagram">
+                            <i class="fab fa-instagram text-xl" aria-hidden="true"></i>
+                        </a>
                     </div>
-                    <p class="text-gray-400 mt-4"><i class="fas fa-envelope mr-2"></i>support@givenget.com</p>
+                    <p class="text-gray-400 flex items-center">
+                        <i class="fas fa-envelope mr-3 text-gray-500" aria-hidden="true"></i>
+                        <a href="mailto:support@givenget.com" class="hover:text-white transition duration-300 focus:outline-none focus:text-white">
+                            support@givenget.com
+                        </a>
+                    </p>
                 </div>
             </div>
 
             <div class="border-t border-gray-700 mt-8 pt-8 text-center text-gray-400">
                 <p>&copy; 2025 GiveNGet. All rights reserved. | Academic Project</p>
+                <p class="mt-2 text-sm">Building sustainable communities through sharing and kindness.</p>
             </div>
         </div>
     </footer>
 
     {% block extra_js %}{% endblock %}
 
-    <script>
-        // Mobile menu toggle
-        document.getElementById('mobile-menu-button').addEventListener('click', function() {
-            const menu = document.getElementById('mobile-menu');
-            menu.classList.toggle('hidden');
-        });
+    <!-- Alpine.js for interactive components -->
+    <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
 
-        // Navbar scroll effect
-        window.addEventListener('scroll', function() {
-            const nav = document.querySelector('nav');
-            if (window.scrollY > 100) {
-                nav.classList.add('shadow-xl');
-            } else {
-                nav.classList.remove('shadow-xl');
+    <script>
+        // Mobile menu functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            const mobileMenuButton = document.getElementById('mobile-menu-button');
+            const mobileMenu = document.getElementById('mobile-menu');
+
+            if (mobileMenuButton && mobileMenu) {
+                mobileMenuButton.addEventListener('click', function() {
+                    const isExpanded = this.getAttribute('aria-expanded') === 'true';
+                    mobileMenu.classList.toggle('hidden');
+                    this.setAttribute('aria-expanded', !isExpanded);
+                    
+                    // Update icon
+                    const icon = this.querySelector('i');
+                    if (icon) {
+                        icon.className = isExpanded ? 'fas fa-bars text-xl' : 'fas fa-times text-xl';
+                    }
+                });
+
+                // Close mobile menu when clicking outside
+                document.addEventListener('click', function(event) {
+                    if (!mobileMenu.contains(event.target) && !mobileMenuButton.contains(event.target)) {
+                        mobileMenu.classList.add('hidden');
+                        mobileMenuButton.setAttribute('aria-expanded', 'false');
+                        const icon = mobileMenuButton.querySelector('i');
+                        if (icon) {
+                            icon.className = 'fas fa-bars text-xl';
+                        }
+                    }
+                });
+
+                // Close mobile menu on escape key
+                document.addEventListener('keydown', function(event) {
+                    if (event.key === 'Escape' && !mobileMenu.classList.contains('hidden')) {
+                        mobileMenu.classList.add('hidden');
+                        mobileMenuButton.setAttribute('aria-expanded', 'false');
+                        const icon = mobileMenuButton.querySelector('i');
+                        if (icon) {
+                            icon.className = 'fas fa-bars text-xl';
+                        }
+                    }
+                });
+            }
+
+            // Message dismissal function
+            window.dismissMessage = function(button) {
+                const message = button.closest('.alert');
+                if (message) {
+                    message.style.opacity = '0';
+                    message.style.transform = 'translateX(100%)';
+                    setTimeout(() => {
+                        message.remove();
+                    }, 300);
+                }
+            };
+
+            // Auto-dismiss messages
+            const autoDismissMessages = document.querySelectorAll('.alert[data-auto-dismiss="true"]');
+            autoDismissMessages.forEach(message => {
+                let timeoutId = setTimeout(() => {
+                    message.style.opacity = '0';
+                    message.style.transform = 'translateX(100%)';
+                    setTimeout(() => message.remove(), 300);
+                }, 5000);
+
+                // Pause auto-dismiss on hover/focus
+                message.addEventListener('mouseenter', () => clearTimeout(timeoutId));
+                message.addEventListener('focusin', () => clearTimeout(timeoutId));
+                
+                message.addEventListener('mouseleave', () => {
+                    timeoutId = setTimeout(() => {
+                        message.style.opacity = '0';
+                        message.style.transform = 'translateX(100%)';
+                        setTimeout(() => message.remove(), 300);
+                    }, 2000);
+                });
+
+                message.addEventListener('focusout', () => {
+                    timeoutId = setTimeout(() => {
+                        message.style.opacity = '0';
+                        message.style.transform = 'translateX(100%)';
+                        setTimeout(() => message.remove(), 300);
+                    }, 2000);
+                });
+            });
+
+            // Navbar scroll effect with throttling
+            let scrollTimeout;
+            window.addEventListener('scroll', function() {
+                const nav = document.querySelector('nav');
+                if (!nav) return;
+
+                clearTimeout(scrollTimeout);
+                scrollTimeout = setTimeout(function() {
+                    if (window.scrollY > 50) {
+                        nav.classList.add('shadow-xl', 'bg-white/95', 'backdrop-blur-sm');
+                    } else {
+                        nav.classList.remove('shadow-xl', 'bg-white/95', 'backdrop-blur-sm');
+                    }
+                }, 10);
+            });
+
+            // Add loading state for navigation
+            document.querySelectorAll('a[href]').forEach(link => {
+                link.addEventListener('click', function(e) {
+                    if (this.href && !this.href.includes('#') && this.target !== '_blank') {
+                        const isSameOrigin = this.origin === window.location.origin;
+                        const isSamePage = this.href === window.location.href;
+                        
+                        if (isSameOrigin && !isSamePage) {
+                            // Add loading indicator here if needed
+                            console.log('Navigating to:', this.href);
+                        }
+                    }
+                });
+            });
+
+            // Focus trap for mobile menu (accessibility)
+            function trapFocus(element) {
+                const focusableElements = element.querySelectorAll(
+                    'a[href], button, textarea, input, select, [tabindex]:not([tabindex="-1"])'
+                );
+                const firstElement = focusableElements[0];
+                const lastElement = focusableElements[focusableElements.length - 1];
+
+                element.addEventListener('keydown', function(e) {
+                    if (e.key === 'Tab') {
+                        if (e.shiftKey) {
+                            if (document.activeElement === firstElement) {
+                                e.preventDefault();
+                                lastElement.focus();
+                            }
+                        } else {
+                            if (document.activeElement === lastElement) {
+                                e.preventDefault();
+                                firstElement.focus();
+                            }
+                        }
+                    }
+                });
+            }
+
+            // Initialize focus trap when mobile menu opens
+            const observer = new MutationObserver(function(mutations) {
+                mutations.forEach(function(mutation) {
+                    if (mutation.type === 'attributes' && mutation.attributeName === 'class') {
+                        const isOpen = !mobileMenu.classList.contains('hidden');
+                        if (isOpen) {
+                            trapFocus(mobileMenu);
+                        }
+                    }
+                });
+            });
+
+            if (mobileMenu) {
+                observer.observe(mobileMenu, { attributes: true });
             }
         });
 
-        // Auto-hide messages after 5 seconds
-        setTimeout(function() {
-            const messages = document.querySelectorAll('.alert');
-            messages.forEach(message => {
-                message.style.opacity = '0';
-                setTimeout(() => message.remove(), 300);
+        // Service Worker Registration (optional - for PWA features)
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', function() {
+                // navigator.serviceWorker.register('/sw.js');
             });
-        }, 5000);
+        }
     </script>
 </body>
 </html>
-
-
-{% comment %} {% load static %}
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}GiveNGet - Donate & Exchange with Ease{% endblock %}</title>
-    
-    <!-- Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    
-    <!-- Font Awesome -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    
-    {% block extra_css %}{% endblock %}
-</head>
-<body class="bg-gray-50">
-    <!-- Navigation -->
-    <nav class="bg-white shadow-lg sticky top-0 z-50 transition-all duration-300">
-        <div class="max-w-7xl mx-auto px-4">
-            <div class="flex justify-between items-center py-4">
-                <!-- Logo -->
-                <div class="flex items-center">
-<a href="{% url 'home' %}" class="flex items-center space-x-3">
-    <img src="{% static 'images/logo.png' %}" 
-         alt="GiveNGet Logo" 
-         class="h-24 w-auto object-contain"> <!-- Logo is now much bigger -->
-    <span class="text-3xl font-bold bg-gradient-to-r from-blue-500 to-purple-500 bg-clip-text text-transparent">
-        GiveNGet
-    </span>
-</a>
-
-
-                </div>
-
-                <!-- Desktop Menu -->
-                <div class="hidden md:flex items-center space-x-8">
-                    <a href="{% url 'home' %}" class="text-gray-700 hover:text-blue-600 font-medium transition duration-300">Home</a>
-                    <a href="{% url 'post_list' %}" class="text-gray-700 hover:text-blue-600 font-medium transition duration-300">Browse Items</a>
-                    
-                    {% if user.is_authenticated %}
-                        <a href="{% url 'dashboard' %}" class="text-gray-700 hover:text-blue-600 font-medium transition duration-300">Dashboard</a>
-                        {% if user.is_donor_user or user.role in 'donor exchanger' %}
-                        <a href="{% url 'create_post' %}" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition duration-300">Create Post</a>
-                        {% endif %}
-
-                        <!-- User Dropdown -->
-                        <div class="relative group">
-                            <button class="flex items-center space-x-2 text-gray-700 hover:text-blue-600 font-medium transition duration-300">
-                                {% if user.profile_photo %}
-                                    <img src="{{ user.profile_photo.url }}" class="w-8 h-8 rounded-full object-cover">
-                                {% else %}
-                                    <div class="w-8 h-8 bg-gradient-to-r from-blue-400 to-purple-500 rounded-full flex items-center justify-center text-white text-sm font-semibold">
-                                        {{ user.name|first|upper }}
-                                    </div>
-                                {% endif %}
-                                <span>{{ user.name }}</span>
-                                <i class="fas fa-chevron-down text-xs"></i>
-                            </button>
-
-                            <div class="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg py-2 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300">
-                                <a href="{% url 'profile' %}" class="block px-4 py-2 text-gray-700 hover:bg-gray-100 transition duration-300">
-                                    <i class="fas fa-user mr-2"></i>My Profile
-                                </a>
-                                <a href="{% url 'manage_requests' %}" class="block px-4 py-2 text-gray-700 hover:bg-gray-100 transition duration-300">
-                                    <i class="fas fa-exchange-alt mr-2"></i>My Requests
-                                </a>
-<a href="{% url 'logout' %}" class="block px-4 py-2 text-red-600 hover:bg-red-50 transition duration-300">
-    <i class="fas fa-sign-out-alt mr-2"></i>Logout
-</a>
-                        </div>
-                    {% else %}
-                        <a href="{% url 'login' %}" class="text-gray-700 hover:text-blue-600 font-medium transition duration-300">Login</a>
-                        <a href="{% url 'register' %}" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-medium transition duration-300">Sign Up</a>
-                    {% endif %}
-                </div>
-
-                <!-- Mobile menu button -->
-                <div class="md:hidden">
-                    <button id="mobile-menu-button" class="text-gray-700 hover:text-blue-600">
-                        <i class="fas fa-bars text-xl"></i>
-                    </button>
-                </div>
-            </div>
-
-            <!-- Mobile Menu -->
-            <div id="mobile-menu" class="hidden md:hidden pb-4 border-t">
-                <div class="flex flex-col space-y-4 mt-4">
-                    <a href="{% url 'home' %}" class="text-gray-700 hover:text-blue-600 font-medium">Home</a>
-                    <a href="{% url 'post_list' %}" class="text-gray-700 hover:text-blue-600 font-medium">Browse Items</a>
-
-                    {% if user.is_authenticated %}
-                        <a href="{% url 'dashboard' %}" class="text-gray-700 hover:text-blue-600 font-medium">Dashboard</a>
-                        {% if user.is_donor_user or user.role in 'donor exchanger' %}
-                        <a href="{% url 'create_post' %}" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium text-center">Create Post</a>
-                        {% endif %}
-                        <a href="{% url 'profile' %}" class="text-gray-700 hover:text-blue-600 font-medium">My Profile</a>
-                        <a href="{% url 'manage_requests' %}" class="text-gray-700 hover:text-blue-600 font-medium">My Requests</a>
-<a href="{% url 'logout' %}" class="text-red-600 hover:text-red-700 font-medium">
-    <i class="fas fa-sign-out-alt mr-2"></i>Logout
-</a>
-                    {% else %}
-                        <a href="{% url 'login' %}" class="text-gray-700 hover:text-blue-600 font-medium">Login</a>
-                        <a href="{% url 'register' %}" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium text-center">Sign Up</a>
-                    {% endif %}
-                </div>
-            </div>
-        </div>
-    </nav>
-
-    <!-- Messages -->
-    {% if messages %}
-    <div class="max-w-7xl mx-auto px-4 mt-4">
-        {% for message in messages %}
-        <div class="alert alert-{{ message.tags }} bg-{% if message.tags == 'success' %}green-500{% elif message.tags == 'error' %}red-500{% else %}blue-500{% endif %} text-white p-4 rounded-lg mb-4 transition duration-300">
-            {{ message }}
-            <button type="button" class="float-right text-white hover:text-gray-200" onclick="this.parentElement.remove()">
-                <i class="fas fa-times"></i>
-            </button>
-        </div>
-        {% endfor %}
-    </div>
-    {% endif %}
-
-    <!-- Main Content -->
-    <main>
-        {% block content %}{% endblock %}
-    </main>
-
-    <!-- Footer -->
-    <footer class="bg-gray-800 text-white py-12">
-        <div class="max-w-7xl mx-auto px-4">
-            <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
-                <div>
-                    <h3 class="text-2xl font-bold mb-4">GiveNGet</h3>
-                    <p class="text-gray-400">A community-driven platform for sharing gifts, exchanging items, and spreading kindness.</p>
-                </div>
-
-                <div>
-                    <h4 class="text-lg font-semibold mb-4">Quick Links</h4>
-                    <ul class="space-y-2">
-                        <li><a href="{% url 'home' %}" class="text-gray-400 hover:text-white transition duration-300">Home</a></li>
-                        <li><a href="{% url 'post_list' %}" class="text-gray-400 hover:text-white transition duration-300">Browse Items</a></li>
-                        <li><a href="{% url 'post_list' %}?type=donation" class="text-gray-400 hover:text-white transition duration-300">Donations</a></li>
-                        <li><a href="{% url 'post_list' %}?type=exchange" class="text-gray-400 hover:text-white transition duration-300">Exchanges</a></li>
-                    </ul>
-                </div>
-
-                <div>
-                    <h4 class="text-lg font-semibold mb-4">Account</h4>
-                    <ul class="space-y-2">
-                        {% if user.is_authenticated %}
-                        <li><a href="{% url 'dashboard' %}" class="text-gray-400 hover:text-white transition duration-300">Dashboard</a></li>
-                        <li><a href="{% url 'profile' %}" class="text-gray-400 hover:text-white transition duration-300">My Profile</a></li>
-                        <li><a href="{% url 'manage_requests' %}" class="text-gray-400 hover:text-white transition duration-300">My Requests</a></li>
-                        {% else %}
-                        <li><a href="{% url 'login' %}" class="text-gray-400 hover:text-white transition duration-300">Login</a></li>
-                        <li><a href="{% url 'register' %}" class="text-gray-400 hover:text-white transition duration-300">Register</a></li>
-                        {% endif %}
-                    </ul>
-                </div>
-
-                <div>
-                    <h4 class="text-lg font-semibold mb-4">Connect</h4>
-                    <div class="flex space-x-4">
-                        <a href="#" class="text-gray-400 hover:text-white transition duration-300"><i class="fab fa-facebook text-xl"></i></a>
-                        <a href="#" class="text-gray-400 hover:text-white transition duration-300"><i class="fab fa-twitter text-xl"></i></a>
-                        <a href="#" class="text-gray-400 hover:text-white transition duration-300"><i class="fab fa-instagram text-xl"></i></a>
-                    </div>
-                    <p class="text-gray-400 mt-4"><i class="fas fa-envelope mr-2"></i>support@givenget.com</p>
-                </div>
-            </div>
-
-            <div class="border-t border-gray-700 mt-8 pt-8 text-center text-gray-400">
-                <p>&copy; 2025 GiveNGet. All rights reserved. | Academic Project</p>
-            </div>
-        </div>
-    </footer>
-
-    {% block extra_js %}{% endblock %}
-
-    <script>
-        // Mobile menu toggle
-        document.getElementById('mobile-menu-button').addEventListener('click', function() {
-            const menu = document.getElementById('mobile-menu');
-            menu.classList.toggle('hidden');
-        });
-
-        // Navbar scroll effect
-        window.addEventListener('scroll', function() {
-            const nav = document.querySelector('nav');
-            if (window.scrollY > 100) {
-                nav.classList.add('shadow-xl');
-            } else {
-                nav.classList.remove('shadow-xl');
-            }
-        });
-
-        // Auto-hide messages after 5 seconds
-        setTimeout(function() {
-            const messages = document.querySelectorAll('.alert');
-            messages.forEach(message => {
-                message.style.opacity = '0';
-                setTimeout(() => message.remove(), 300);
-            });
-        }, 5000);
-    </script>
-</body>
-</html> {% endcomment %}

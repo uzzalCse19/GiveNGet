@@ -262,14 +262,37 @@ def admin_dashboard(request):
     # Load different data based on active section
     if active_section == 'overview':
         context.update(get_admin_overview_data())
+
     elif active_section == 'users':
-        context.update(get_admin_users_data(request))
+        result = get_admin_users_data(request)
+        if isinstance(result, dict):
+           context.update(result)
+        else:
+           return result 
+
     elif active_section == 'posts':
-        context.update(get_admin_posts_data(request))
+         result = get_admin_posts_data(request)
+         if isinstance(result, dict):
+            context.update(result)
+         else:
+            return result
+
+
     elif active_section == 'requests':
-        context.update(get_admin_requests_data(request))
+        result = get_admin_requests_data(request)
+        if isinstance(result, dict):
+            context.update(result)
+        else:
+            return result
+
+
     elif active_section == 'categories':
         result = get_admin_categories_data(request)
+        if isinstance(result, dict):
+            context.update(result)
+        else:
+            return result
+
     # redirect না হলে update
         if isinstance(result, dict):
             context.update(result)
@@ -413,7 +436,8 @@ def get_admin_posts_data(request):
             post.save()
             messages.success(request, f'Post status updated to {new_status}.')
         
-        return redirect('dashboard?section=posts')
+        return redirect(f"{reverse('dashboard')}?section=posts")
+
     
     return {'all_posts': posts}
 
@@ -474,7 +498,8 @@ def get_admin_requests_data(request):
             upohar_request.delete()
             messages.success(request, "Request has been deleted.")
 
-        return redirect('dashboard?section=requests' + (f'&status={status_filter}' if status_filter else ''))
+        return redirect(f"{reverse('dashboard')}?section=requests" + (f"&status={status_filter}" if status_filter else ""))
+
 
     return {
         'all_requests': requests,
@@ -530,6 +555,7 @@ def get_admin_categories_data(request):
         
         # Redirect to the same section after POST
         return redirect(f"{reverse('dashboard')}?section=categories")
+        
     
     # For GET request, return context dict
     return {
@@ -601,6 +627,97 @@ def get_user_requests_data(user):
 def get_user_received_requests_data(user):
     requests_received = UpoharRequest.objects.filter(gift__donor=user).order_by('-created_at')
     return {'requests_received': requests_received}
+
+from django.shortcuts import render, redirect, get_object_or_404
+from django.contrib import messages
+from django.core.mail import send_mail
+from django.conf import settings
+from django.utils import timezone
+from .models import User, PasswordResetToken
+from .forms import ForgotPasswordForm, ResetPasswordForm
+
+def forgot_password(request):
+    if request.method == 'POST':
+        form = ForgotPasswordForm(request.POST)
+        if form.is_valid():
+            email = form.cleaned_data['email']
+            user = User.objects.get(email=email)
+            
+            # Create reset token
+            reset_token = PasswordResetToken.create_token(user)
+            
+            # Send email (you'll need to configure email settings)
+            reset_link = f"{request.scheme}://{request.get_host()}/reset-password/{reset_token.token}/"
+            
+            subject = 'Password Reset Request'
+            message = f'''
+            Hello {user.name},
+            
+            You requested a password reset for your account.
+            Click the link below to reset your password:
+            
+            {reset_link}
+            
+            This link will expire in 1 hour.
+            
+            If you didn't request this, please ignore this email.
+            
+            Best regards,
+            Your App Team
+            '''
+            
+            try:
+                send_mail(
+                    subject,
+                    message,
+                    settings.DEFAULT_FROM_EMAIL,
+                    [user.email],
+                    fail_silently=False,
+                )
+                messages.success(request, 'Password reset link has been sent to your email.')
+            except Exception as e:
+                messages.error(request, 'Failed to send email. Please try again.')
+            
+            return redirect('forgot_password')
+    else:
+        form = ForgotPasswordForm()
+    
+    return render(request, 'forgot_password.html', {'form': form})
+
+def reset_password(request, token):
+    try:
+        reset_token = PasswordResetToken.objects.get(token=token)
+        
+        if not reset_token.is_valid():
+            messages.error(request, 'Invalid or expired reset link.')
+            return redirect('forgot_password')
+        
+        if request.method == 'POST':
+            form = ResetPasswordForm(request.POST)
+            if form.is_valid():
+                # Update user password
+                user = reset_token.user
+                password = form.cleaned_data['password1']
+                user.set_password(password)
+                user.save()
+                
+                # Mark token as used
+                reset_token.mark_as_used()
+                
+                messages.success(request, 'Password has been reset successfully. You can now login with your new password.')
+                return redirect('login')  # Adjust to your login URL name
+        else:
+            form = ResetPasswordForm()
+        
+        return render(request, 'reset_password.html', {
+            'form': form,
+            'token': token,
+            'valid_token': True
+        })
+        
+    except PasswordResetToken.DoesNotExist:
+        messages.error(request, 'Invalid reset link.')
+        return redirect('forgot_password')
 
 # @login_required
 # def dashboard(request):
@@ -863,6 +980,7 @@ def profile(request):
     })
     
     return render(request, 'profile.html', {'form': form})
+
 from django.contrib.auth import logout
 @login_required
 def custom_logout(request):

@@ -84,3 +84,34 @@ class User(AbstractUser):
     def total_completed_transactions(self):
         # Total of both donations and exchanges for statistics
         return self.completed_donations + self.completed_exchanges
+
+from django.db import models
+from django.utils import timezone
+from datetime import timedelta
+import secrets
+
+class PasswordResetToken(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    token = models.CharField(max_length=100, unique=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    is_used = models.BooleanField(default=False)
+    
+    def is_valid(self):
+        # Token expires after 1 hour
+        return not self.is_used and (timezone.now() - self.created_at) < timedelta(hours=1)
+    
+    def mark_as_used(self):
+        self.is_used = True
+        self.save()
+    
+    @classmethod
+    def create_token(cls, user):
+        # Delete any existing tokens for this user
+        cls.objects.filter(user=user).delete()
+        
+        # Create new token
+        token = secrets.token_urlsafe(50)
+        return cls.objects.create(user=user, token=token)
+    
+    def __str__(self):
+        return f"Reset token for {self.user.email}"

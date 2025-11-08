@@ -186,6 +186,76 @@ class CustomUserAdmin(UserAdmin):
 
     def get_queryset(self, request):
         return super().get_queryset(request).prefetch_related('groups', 'user_permissions')
+    
+from django.contrib import admin
+from django.utils import timezone
+from datetime import timedelta
+from .models import PasswordResetToken
+
+class PasswordResetTokenAdmin(admin.ModelAdmin):
+    list_display = ['user', 'token_short', 'created_at', 'is_used', 'is_valid_display', 'expires_in']
+    list_filter = ['is_used', 'created_at']
+    search_fields = ['user__email', 'user__name', 'token']
+    readonly_fields = ['token', 'created_at', 'is_valid_display', 'expires_in']
+    ordering = ['-created_at']
+    
+    fieldsets = (
+        ('Token Information', {
+            'fields': ('user', 'token', 'created_at')
+        }),
+        ('Status', {
+            'fields': ('is_used', 'is_valid_display', 'expires_in')
+        }),
+    )
+    
+    def token_short(self, obj):
+        """Display shortened version of token"""
+        return f"{obj.token[:20]}..." if len(obj.token) > 20 else obj.token
+    token_short.short_description = 'Token'
+    
+    def is_valid_display(self, obj):
+        """Display whether token is valid"""
+        return obj.is_valid()
+    is_valid_display.boolean = True
+    is_valid_display.short_description = 'Is Valid'
+    
+    def expires_in(self, obj):
+        """Display time until expiration"""
+        if obj.is_used:
+            return "Used"
+        
+        expiration_time = obj.created_at + timedelta(hours=1)
+        time_left = expiration_time - timezone.now()
+        
+        if time_left.total_seconds() <= 0:
+            return "Expired"
+        
+        hours, remainder = divmod(int(time_left.total_seconds()), 3600)
+        minutes = remainder // 60
+        
+        if hours > 0:
+            return f"{hours}h {minutes}m"
+        return f"{minutes}m"
+    expires_in.short_description = 'Expires In'
+    
+    def get_queryset(self, request):
+        """Optimize queryset with user data"""
+        return super().get_queryset(request).select_related('user')
+    
+    def has_add_permission(self, request):
+        """Prevent manual addition of tokens"""
+        return False
+    
+    def has_change_permission(self, request, obj=None):
+        """Allow only marking as used"""
+        return True
+    
+    def has_delete_permission(self, request, obj=None):
+        """Allow deletion of tokens"""
+        return True
+
+# Register the model
+admin.site.register(PasswordResetToken, PasswordResetTokenAdmin)
 
 # Register the custom User model with the custom admin interface
 admin.site.register(User, CustomUserAdmin)

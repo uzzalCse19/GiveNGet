@@ -58,6 +58,82 @@ class CustomUserCreationForm(UserCreationForm):
             self.save_m2m()
         return user
 
+
+class UserProfileForm(forms.ModelForm):
+    class Meta:
+        model = User
+        fields = ['name', 'phone', 'profile_photo', 'address']
+        widgets = {
+            'name': forms.TextInput(attrs={
+                'class': 'w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition duration-300',
+                'placeholder': 'Enter your full name'
+            }),
+            'phone': forms.TextInput(attrs={
+                'class': 'w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition duration-300',
+                'placeholder': '01XXXXXXXXX'
+            }),
+            'address': forms.Textarea(attrs={
+                'class': 'w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition duration-300',
+                'rows': 3,
+                'placeholder': 'Enter your complete address'
+            }),
+            'profile_photo': forms.FileInput(attrs={
+                'class': 'hidden'
+            }),
+        }
+    
+    def clean_phone(self):
+        phone = self.cleaned_data.get('phone')
+        if phone:
+            import re
+            pattern = r'^(?:\+?88)?01[3-9]\d{8}$'
+            if not re.match(pattern, phone):
+                raise forms.ValidationError("Please enter a valid Bangladeshi phone number.")
+        return phone
+
+
+
+class ForgotPasswordForm(forms.Form):
+    email = forms.EmailField(
+        max_length=254,
+        widget=forms.EmailInput(attrs={
+            'class': 'w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm',
+            'placeholder': 'Enter your email address'
+        })
+    )
+    
+    def clean_email(self):
+        email = self.cleaned_data.get('email')
+        if not User.objects.filter(email=email).exists():
+            raise forms.ValidationError("No account found with this email address.")
+        return email
+
+class ResetPasswordForm(forms.Form):
+    password1 = forms.CharField(
+        label="New Password",
+        widget=forms.PasswordInput(attrs={
+            'class': 'w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm',
+            'placeholder': 'Enter new password'
+        })
+    )
+    password2 = forms.CharField(
+        label="Confirm New Password",
+        widget=forms.PasswordInput(attrs={
+            'class': 'w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm',
+            'placeholder': 'Confirm new password'
+        })
+    )
+    
+    def clean(self):
+        cleaned_data = super().clean()
+        password1 = cleaned_data.get("password1")
+        password2 = cleaned_data.get("password2")
+        
+        if password1 and password2 and password1 != password2:
+            raise forms.ValidationError("Passwords don't match")
+        
+        return cleaned_data
+    
 # class CustomUserCreationForm(UserCreationForm):
 #     class Meta:
 #         model = User
@@ -102,39 +178,6 @@ class CustomUserCreationForm(UserCreationForm):
 #         if User.objects.filter(email=email).exists():
 #             raise forms.ValidationError("This email is already registered.")
 #         return email
-
-class UserProfileForm(forms.ModelForm):
-    class Meta:
-        model = User
-        fields = ['name', 'phone', 'profile_photo', 'address']
-        widgets = {
-            'name': forms.TextInput(attrs={
-                'class': 'w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition duration-300',
-                'placeholder': 'Enter your full name'
-            }),
-            'phone': forms.TextInput(attrs={
-                'class': 'w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition duration-300',
-                'placeholder': '01XXXXXXXXX'
-            }),
-            'address': forms.Textarea(attrs={
-                'class': 'w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition duration-300',
-                'rows': 3,
-                'placeholder': 'Enter your complete address'
-            }),
-            'profile_photo': forms.FileInput(attrs={
-                'class': 'hidden'
-            }),
-        }
-    
-    def clean_phone(self):
-        phone = self.cleaned_data.get('phone')
-        if phone:
-            import re
-            pattern = r'^(?:\+?88)?01[3-9]\d{8}$'
-            if not re.match(pattern, phone):
-                raise forms.ValidationError("Please enter a valid Bangladeshi phone number.")
-        return phone
-
 
 
 # class UpoharPostForm(forms.ModelForm):
