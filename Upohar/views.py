@@ -182,7 +182,7 @@ Message: {message}
 Please login to your dashboard to review this request.
 
 Best regards,
-Upohar Team
+GiveNGet Team
                 ''',
                 from_email=settings.DEFAULT_FROM_EMAIL,
                 recipient_list=[post.donor.email],
@@ -257,7 +257,7 @@ Item Details:
 - Description: {gift.description}
 
 Best regards,
-Upohar Team
+GiveNGet Team
                         ''',
                         from_email=settings.DEFAULT_FROM_EMAIL,
                         recipient_list=[upohar_request.requester.email],
@@ -348,78 +348,3 @@ def edit_post(request, pk):
 
     return render(request, 'edit_post.html', {'form': form, 'post': post})
 
-# @login_required
-# def manage_requests(request):
-#     user = request.user
-    
-#     if user.role == 'donor' or user.is_donor_user or user.role == 'exchanger':
-#         # Requests for user's posts
-#         received_requests = UpoharRequest.objects.filter(gift__donor=user).order_by('-created_at')
-        
-#         if request.method == 'POST':
-#             request_id = request.POST.get('request_id')
-#             action = request.POST.get('action')
-            
-#             upohar_request = get_object_or_404(UpoharRequest, id=request_id, gift__donor=user)
-            
-#             if action == 'approve':
-#                 # Approve this request and reject others
-#                 UpoharRequest.objects.filter(gift=upohar_request.gift).exclude(id=request_id).update(status='rejected')
-#                 upohar_request.status = 'approved'
-#                 upohar_request.gift.status = 'requested'
-#                 upohar_request.gift.receiver = upohar_request.requester
-#                 upohar_request.gift.save()
-#                 upohar_request.save()
-                
-#                 # Send approval email
-#                 try:
-#                     send_mail(
-#                         subject=f'Your Request Has Been Approved: {upohar_request.gift.title}',
-#                         message=f'''
-# Hello {upohar_request.requester.name},
-
-# Your request for "{upohar_request.gift.title}" has been approved!
-
-# Please contact the donor to arrange pickup/delivery.
-
-# Donor: {user.name} ({user.email})
-#      {item_details}
-
-# Best regards,
-# Upohar Team
-#                         ''',
-#                         from_email=settings.DEFAULT_FROM_EMAIL,
-#                         recipient_list=[upohar_request.requester.email],
-#                         fail_silently=False,
-#                     )
-#                 except Exception as e:
-#                     print(f"Email sending failed: {e}")
-                
-#                 messages.success(request, 'Request approved successfully!')
-                
-#             elif action == 'reject':
-#                 upohar_request.status = 'rejected'
-#                 upohar_request.save()
-#                 messages.success(request, 'Request rejected.')
-            
-#             elif action == 'complete':
-#                 upohar_request.status = 'completed'
-#                 upohar_request.gift.status = 'completed'
-#                 upohar_request.gift.save()
-#                 upohar_request.save()
-                
-#                 # Update user stats
-#                 user.completed_transactions += 1
-#                 user.save()
-#                 if upohar_request.requester.role in ['receiver', 'exchanger']:
-#                     upohar_request.requester.completed_transactions += 1
-#                     upohar_request.requester.save()
-                
-#                 messages.success(request, 'Transaction marked as completed!')
-        
-#         return render(request, 'manage_requests.html', {'received_requests': received_requests})
-    
-#     else:
-#         # For receivers - show their sent requests
-#         sent_requests = UpoharRequest.objects.filter(requester=user).order_by('-created_at')
-#         return render(request, 'manage_requests.html', {'sent_requests': sent_requests})

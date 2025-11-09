@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}Dashboard - Upohar{% endblock %}
+{% block title %}Dashboard - GiveNGet{% endblock %}
 
 {% block extra_css %}
 <style>
@@ -836,7 +836,7 @@
                     <i class="fas fa-paper-plane"></i>
                     <h3>No Requests Sent</h3>
                     <p>You haven't sent any requests yet. Browse available items to make a request!</p>
-                    <a href="{% url 'browse' %}" class="btn btn-primary">Browse Items</a>
+                    <a href="{% url 'post_list' %}" class="btn btn-primary">Browse Items</a>
                 </div>
                 {% endif %}
             </div>

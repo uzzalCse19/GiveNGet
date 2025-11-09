@@ -1,6 +1,5 @@
 from django.shortcuts import render
 from django.db import IntegrityError
-# Create your views here.
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
@@ -15,7 +14,7 @@ from django.utils import timezone
 from datetime import timedelta
 from django.db.models.functions import TruncMonth
 from django.urls import reverse
-# Template Views
+
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 
 
@@ -187,7 +186,7 @@ This link will expire in 24 hours.
 If you didn't request this, please ignore this email.
 
 Best regards,
-Upohar Team
+GiveNGet Team
             """
 
             send_mail(
