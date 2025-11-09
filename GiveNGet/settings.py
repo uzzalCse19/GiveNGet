@@ -14,6 +14,8 @@ from pathlib import Path
 from decouple import config
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
+from dj_database_url import parse as db_url
+import dj_database_url
 
 
 # Quick-start development settings - unsuitable for production
@@ -89,13 +91,22 @@ WSGI_APPLICATION = "GiveNGet.wsgi.application"
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
-DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.sqlite3",
-        "NAME": BASE_DIR / "db.sqlite3",
-    }
-}
+# DATABASES = {
+#     "default": {
+#         "ENGINE": "django.db.backends.sqlite3",
+#         "NAME": BASE_DIR / "db.sqlite3",
+#     }
+# }
 
+# Replace the SQLite DATABASES configuration with PostgreSQL:
+DATABASES = {
+    'default': dj_database_url.config(
+        default='postgresql://givenget_db_user:drFskFyWdlrhXq6cjgR0zEC9pFDViuDn@dpg-d47cobi4d50c7382v4ig-a.oregon-postgres.render.com/givenget_db',
+        conn_max_age=600,
+        ssl_require=True,
+        engine='django.db.backends.postgresql_psycopg2'
+    )
+}
 
 # Password validation
 # https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators
